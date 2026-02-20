@@ -15,6 +15,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 export default function WebinarFunnel() {
   const queryClient = useQueryClient();
   const [selectedTag, setSelectedTag] = useState('all');
+  const [selectedSeller, setSelectedSeller] = useState('all');
   const [attendeesInput, setAttendeesInput] = useState('');
   const [pitchInput, setPitchInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -35,14 +36,33 @@ export default function WebinarFunnel() {
     },
   });
 
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      return data || [];
+    },
+  });
+
+  const vendedoras = allProfiles.filter((p: any) =>
+    p.role !== 'ADMIN' &&
+    p.full_name &&
+    !p.id.startsWith('00000000') &&
+    !p.full_name.toLowerCase().includes('test')
+  );
+
   const uniqueTags = useMemo(() =>
     Array.from(new Set(allLeads.map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse(),
     [allLeads]
   );
 
   const webinarLeads = useMemo(() =>
-    allLeads.filter(l => l.origem === 'webinar' && (selectedTag === 'all' || l.webinar_date_tag === selectedTag)),
-    [allLeads, selectedTag]
+    allLeads.filter(l =>
+      l.origem === 'webinar' &&
+      (selectedTag === 'all' || l.webinar_date_tag === selectedTag) &&
+      (selectedSeller === 'all' || l.assigned_to === selectedSeller)
+    ),
+    [allLeads, selectedTag, selectedSeller]
   );
 
   const currentMetrics = useMemo(() => {
@@ -236,6 +256,15 @@ export default function WebinarFunnel() {
               ))}
             </SelectContent>
           </Select>
+          <Select value={selectedSeller} onValueChange={setSelectedSeller}>
+            <SelectTrigger className="w-[190px]"><SelectValue placeholder="Todas as vendedoras" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas as vendedoras</SelectItem>
+              {vendedoras.map((p: any) => (
+                <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-2">
@@ -328,7 +357,7 @@ export default function WebinarFunnel() {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Funnel bar chart - Neon style */}
-         <Card className="border-none">
+        <Card className="border-none">
           <CardHeader className="pb-2">
             <div className="flex justify-between items-center">
               <CardTitle className="text-base">Funil de Conversão</CardTitle>
