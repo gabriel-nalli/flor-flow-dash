@@ -1,0 +1,91 @@
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 240 5% 6%;
+    --foreground: 0 0% 95%;
+    --card: 240 4% 8%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 4% 9%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 345 65% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 240 4% 11%;
+    --secondary-foreground: 0 0% 70%;
+    --muted: 240 4% 11%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 345 65% 47%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 0% / 0;
+    --input: 0 0% 100% / 0.03;
+    --ring: 345 65% 47%;
+    --radius: 0.5rem;
+    --success: 142 60% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --sidebar-background: 240 5% 6%;
+    --sidebar-foreground: 0 0% 55%;
+    --sidebar-primary: 345 65% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 4% 11%;
+    --sidebar-accent-foreground: 0 0% 85%;
+    --sidebar-border: 0 0% 0% / 0;
+    --sidebar-ring: 345 65% 47%;
+  }
+
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 220 15% 15%;
+    --card: 0 0% 98%;
+    --card-foreground: 220 15% 15%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 15% 15%;
+    --primary: 345 65% 47%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 220 12% 92%;
+    --secondary-foreground: 220 12% 30%;
+    --muted: 220 12% 94%;
+    --muted-foreground: 220 8% 45%;
+    --accent: 345 65% 47%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 220 12% 88%;
+    --input: 220 12% 88%;
+    --ring: 345 65% 47%;
+    --success: 142 60% 40%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 10%;
+    --sidebar-background: 220 12% 96%;
+    --sidebar-foreground: 220 12% 35%;
+    --sidebar-primary: 345 65% 47%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 12% 92%;
+    --sidebar-accent-foreground: 220 12% 20%;
+    --sidebar-border: 220 12% 88%;
+    --sidebar-ring: 345 65% 47%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', sans-serif;
+  }
+  h1, h2, h3, h4 {
+    font-family: 'Inter', sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+}

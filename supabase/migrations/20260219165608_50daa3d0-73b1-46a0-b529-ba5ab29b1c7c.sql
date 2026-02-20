@@ -1,0 +1,1 @@
+DELETE FROM webinar_metrics WHERE webinar_tag = 'Webinar 17/02';

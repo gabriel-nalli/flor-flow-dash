@@ -1,0 +1,1 @@
+UPDATE profiles SET role = 'SOCIAL_SELLER' WHERE id = 'eebea258-cb55-4c0f-b96d-68f02e6a6223';
