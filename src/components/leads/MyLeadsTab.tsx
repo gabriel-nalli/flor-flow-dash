@@ -1,17 +1,18 @@
 import React, { useState, useMemo } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UrgentLeadsDialog } from '@/components/leads/UrgentLeadsDialog';
 import { LostReasonDialog } from '@/components/leads/LostReasonDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
 
-import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2 } from 'lucide-react';
+import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO } from 'date-fns';
@@ -40,6 +41,9 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   const [mqlOnly, setMqlOnly] = useState(false);
   const [revenueFilter, setRevenueFilter] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
+  const [reassignLead, setReassignLead] = useState<any>(null);
+  const [reassignTo, setReassignTo] = useState('');
 
   const profileMap = externalProfileMap || Object.fromEntries(TEAM_MEMBERS.map(p => [p.id, p.full_name]));
   // Build sellers list from profileMap (real DB profiles) excluding admins
@@ -50,6 +54,17 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
     })
     .map(([id, name]) => ({ id, full_name: name }));
   const uniqueTags = Array.from(new Set((allLeads.length ? allLeads : leads).map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse();
+
+  // Busca todos os perfis para o dialog de troca de responsável (apenas admin)
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      return data || [];
+    },
+    enabled: isAdmin,
+  });
+  const vendedoras = allProfiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
 
   const parseFaturamento = (fat: string | null | undefined): string => {
     if (!fat) return '';
@@ -94,6 +109,16 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
       await updateLead(lead.id, {});
     }
     toast.success('WhatsApp enviado!');
+  };
+
+  const handleReassign = async () => {
+    if (!reassignLead || !reassignTo) return;
+    await updateLead(reassignLead.id, { assigned_to: reassignTo });
+    await logAction(reassignLead.id, 'reassigned');
+    toast.success('Responsável atualizado com sucesso!');
+    setReassignDialogOpen(false);
+    setReassignLead(null);
+    setReassignTo('');
   };
 
   const handleStatusChange = async (lead: any, newStatus: string, actionType: string) => {
@@ -431,6 +456,18 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                               </DropdownMenuItem>
                             </>
                           )}
+                          {isAdmin && lead.assigned_to && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => {
+                                setReassignLead(lead);
+                                setReassignTo(lead.assigned_to || '');
+                                setReassignDialogOpen(true);
+                              }}>
+                                <UserCheck className="w-4 h-4 mr-2" /> Trocar Responsável
+                              </DropdownMenuItem>
+                            </>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -467,6 +504,47 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
         <NeonPagination showing={filtered.length} total={leads.length} />
       </NeonTableWrapper>
 
+
+      <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Trocar Responsável</DialogTitle>
+          </DialogHeader>
+          <div className="py-4 space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Lead: <span className="font-semibold text-foreground">{reassignLead?.nome}</span>
+            </p>
+            <Select value={reassignTo} onValueChange={setReassignTo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecionar nova responsável" />
+              </SelectTrigger>
+              <SelectContent>
+                {vendedoras.map((p: any) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.full_name}
+                    {p.id === reassignLead?.assigned_to ? ' (atual)' : ''}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <button
+              onClick={() => { setReassignDialogOpen(false); setReassignLead(null); setReassignTo(''); }}
+              className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={handleReassign}
+              disabled={!reassignTo || reassignTo === reassignLead?.assigned_to}
+              className="px-4 py-2 bg-foreground text-background text-sm font-bold rounded-lg hover:bg-foreground/90 transition-all disabled:opacity-40"
+            >
+              Confirmar Troca
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <SaleDialog
         open={saleDialogOpen}
