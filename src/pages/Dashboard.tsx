@@ -49,7 +49,7 @@ export default function Dashboard() {
   const [showFollowupDialog, setShowFollowupDialog] = useState(false);
   const [showSemResponsavelDialog, setShowSemResponsavelDialog] = useState(false);
   const { data: leads = [] } = useQuery({
-    queryKey: ['dashboard-leads'],
+    queryKey: ['leads'],
     queryFn: async () => {
       const { data } = await supabase.from('leads').select('*');
       return data || [];
@@ -65,7 +65,7 @@ export default function Dashboard() {
   });
 
   const { data: allActions = [] } = useQuery({
-    queryKey: ['all-lead-actions'],
+    queryKey: ['lead_actions'],
     queryFn: async () => {
       const { data } = await supabase.from('lead_actions').select('*');
       return data || [];

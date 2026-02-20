@@ -85,7 +85,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-leads'] });
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.success('Lead adicionado com sucesso! ✅');
       resetForm();
       onOpenChange(false);
