@@ -22,7 +22,7 @@ const ORIGIN_OPTIONS = [
 ];
 
 export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
-  const { isAdmin } = useProfileSelector();
+  const { isAdmin, selectedProfile } = useProfileSelector();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
@@ -74,6 +74,10 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
 
       if (isAdmin && assignedTo !== 'none') {
         payload.assigned_to = assignedTo;
+        payload.status = 'contato_1_feito';
+      } else if (!isAdmin) {
+        // Vendedora criando lead → vai direto para os leads dela
+        payload.assigned_to = selectedProfile.id;
         payload.status = 'contato_1_feito';
       }
 
