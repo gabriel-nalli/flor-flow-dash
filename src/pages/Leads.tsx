@@ -144,8 +144,8 @@ export default function Leads() {
           <button
             onClick={() => setActiveTab('meus')}
             className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'meus'
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground/70'
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground/70'
               }`}
           >
             {isAdmin ? 'Leads Coletados' : 'Meus Leads'}
@@ -153,20 +153,18 @@ export default function Leads() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}
           </button>
-          {isAdmin && (
-            <button
-              onClick={() => setActiveTab('webinar')}
-              className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
-                  ? 'text-foreground'
-                  : 'text-muted-foreground hover:text-foreground/70'
-                }`}
-            >
-              Leads Webinar
-              {activeTab === 'webinar' && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
-              )}
-            </button>
-          )}
+          <button
+            onClick={() => setActiveTab('webinar')}
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
+              ? 'text-foreground'
+              : 'text-muted-foreground hover:text-foreground/70'
+              }`}
+          >
+            Leads Webinar
+            {activeTab === 'webinar' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
+            )}
+          </button>
         </div>
 
         <div>
