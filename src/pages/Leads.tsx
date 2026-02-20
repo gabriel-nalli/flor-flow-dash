@@ -37,7 +37,7 @@ export default function Leads() {
     },
   });
 
-  const profileMap = useMemo(() => 
+  const profileMap = useMemo(() =>
     Object.fromEntries(profiles.map(p => [p.id, p.full_name || 'Sem nome'])),
     [profiles]
   );
@@ -58,7 +58,7 @@ export default function Leads() {
     ? collectedLeads
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
-  const totalLeads = allLeads.length;
+  const totalLeads = isAdmin ? allLeads.length : myLeads.length;
   const coletados = collectedLeads.length;
   const pendentes = webinarLeads.length;
 
@@ -77,21 +77,25 @@ export default function Leads() {
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
-              Total: <span className="font-bold text-foreground">{totalLeads}</span>
+              {isAdmin ? 'Total' : 'Meus Leads'}: <span className="font-bold text-foreground">{totalLeads}</span>
             </span>
-            <span className="flex items-center gap-1.5 text-xs text-green-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
-              Coletados: <span className="font-bold text-green-500">{coletados}</span>
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-amber-500">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
-              Pendentes: <span className="font-bold text-amber-500">{pendentes}</span>
-            </span>
+            {isAdmin && (
+              <>
+                <span className="flex items-center gap-1.5 text-xs text-green-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
+                  Coletados: <span className="font-bold text-green-500">{coletados}</span>
+                </span>
+                <span className="flex items-center gap-1.5 text-xs text-amber-500">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
+                  Pendentes: <span className="font-bold text-amber-500">{pendentes}</span>
+                </span>
+              </>
+            )}
           </div>
         </div>
 
         <div className="flex gap-2">
-        {isAdmin && (
+          {isAdmin && (
             <button
               onClick={() => {
                 const headers = ['Nome', 'WhatsApp', 'Email', 'Instagram', 'Faturamento', 'Origem', 'Status', 'Responsável', 'Venda', 'Valor Venda', 'Valor Cash', 'Webinar Tag', 'Criado em'];
@@ -139,30 +143,30 @@ export default function Leads() {
         <div className="flex">
           <button
             onClick={() => setActiveTab('meus')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
-              activeTab === 'meus'
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'meus'
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/70'
-            }`}
+              }`}
           >
             {isAdmin ? 'Leads Coletados' : 'Meus Leads'}
             {activeTab === 'meus' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}
           </button>
-          <button
-            onClick={() => setActiveTab('webinar')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
-              activeTab === 'webinar'
-                ? 'text-foreground'
-                : 'text-muted-foreground hover:text-foreground/70'
-            }`}
-          >
-            Leads Webinar
-            {activeTab === 'webinar' && (
-              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
-            )}
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setActiveTab('webinar')}
+              className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
+                  ? 'text-foreground'
+                  : 'text-muted-foreground hover:text-foreground/70'
+                }`}
+            >
+              Leads Webinar
+              {activeTab === 'webinar' && (
+                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
+              )}
+            </button>
+          )}
         </div>
 
         <div>

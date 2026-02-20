@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { ProfileSelectorProvider } from "@/contexts/ProfileSelectorContext";
+import { useProfileSelector, ProfileSelectorProvider } from "@/contexts/ProfileSelectorContext";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Leads from "@/pages/Leads";
@@ -15,6 +15,12 @@ import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { isAdmin } = useProfileSelector();
+  if (!isAdmin) return <Navigate to="/leads" replace />;
+  return <>{children}</>;
+}
 
 function ProtectedRoutes() {
   const { user, loading } = useAuth();
@@ -34,8 +40,8 @@ function ProtectedRoutes() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/leads" element={<Leads />} />
           <Route path="/routine" element={<Routine />} />
-          <Route path="/meta" element={<SalesGoal />} />
-          <Route path="/funil-webinar" element={<WebinarFunnel />} />
+          <Route path="/meta" element={<AdminRoute><SalesGoal /></AdminRoute>} />
+          <Route path="/funil-webinar" element={<AdminRoute><WebinarFunnel /></AdminRoute>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>
