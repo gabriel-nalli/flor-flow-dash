@@ -64,7 +64,12 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
     },
     enabled: isAdmin,
   });
-  const vendedoras = allProfiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
+  const vendedoras = allProfiles.filter((p: any) =>
+    p.role !== 'ADMIN' &&
+    p.full_name &&
+    !p.id.startsWith('00000000') &&
+    !p.full_name.toLowerCase().includes('test')
+  );
 
   const parseFaturamento = (fat: string | null | undefined): string => {
     if (!fat) return '';
