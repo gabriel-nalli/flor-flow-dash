@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface FunnelChartProps {
   leads: any[];
@@ -62,7 +63,22 @@ function NeonStatCard({ label, value, subtext }: { label: string; value: string;
 
 export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) {
   const [selectedSeller, setSelectedSeller] = useState('all');
-  const sellers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
+
+  const { data: allProfiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      return data || [];
+    },
+    enabled: isAdmin,
+  });
+
+  const sellers = allProfiles.filter((p: any) =>
+    p.role !== 'ADMIN' &&
+    p.full_name &&
+    !p.id.startsWith('00000000') &&
+    !p.full_name.toLowerCase().includes('test')
+  );
 
   const stats = useMemo(() => {
     const filteredLeads = selectedSeller === 'all'
