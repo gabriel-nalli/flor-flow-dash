@@ -40,6 +40,23 @@ const parseLostReason = (notes: string | null | undefined): string => {
 const PAYMENT_LABELS: Record<string, string> = {
     boleto: 'Boleto',
     hubla: 'HUBLA',
+    hubla_boleto: 'HUBLA + Boleto',
+};
+
+// Parseia o payment_method que pode ser uma string simples ou JSON (hubla_boleto)
+const parsePaymentMethod = (pm: string | null | undefined): {
+    type: string;
+    hubla_entrada?: number;
+    boleto_parcelado?: number;
+} | null => {
+    if (!pm) return null;
+    try {
+        const parsed = JSON.parse(pm);
+        if (parsed && parsed.type) return parsed;
+    } catch {
+        // não é JSON, é string simples (boleto/hubla)
+    }
+    return { type: pm };
 };
 
 const COMMISSION_RATE = 0.075;
@@ -73,7 +90,10 @@ export function SalesAndLossesTable({
     const applyLocalFilters = (list: any[]) => {
         return list.filter(lead => {
             if (isAdmin && filterSeller !== 'all' && lead.assigned_to !== filterSeller) return false;
-            if (filterPayment !== 'all' && lead.payment_method !== filterPayment) return false;
+            if (filterPayment !== 'all') {
+                const parsed = parsePaymentMethod(lead.payment_method);
+                if (!parsed || parsed.type !== filterPayment) return false;
+            }
             if (dateRange?.from && lead.last_action_at) {
                 try {
                     if (!isWithinInterval(parseISO(lead.last_action_at), {
@@ -193,13 +213,14 @@ export function SalesAndLossesTable({
 
                             {/* Método de pagamento */}
                             <Select value={filterPayment} onValueChange={setFilterPayment}>
-                                <SelectTrigger className="h-8 w-[130px] text-xs">
+                                <SelectTrigger className="h-8 w-[150px] text-xs">
                                     <SelectValue placeholder="Pagamento" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">Todos</SelectItem>
                                     <SelectItem value="boleto">Boleto</SelectItem>
                                     <SelectItem value="hubla">HUBLA</SelectItem>
+                                    <SelectItem value="hubla_boleto">HUBLA + Boleto</SelectItem>
                                 </SelectContent>
                             </Select>
 
@@ -308,10 +329,29 @@ export function SalesAndLossesTable({
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-sm">
-                                                {lead.payment_method
-                                                    ? <span className="font-medium">{PAYMENT_LABELS[lead.payment_method] || lead.payment_method}</span>
-                                                    : <span className="text-muted-foreground">—</span>
-                                                }
+                                                {(() => {
+                                                    const parsed = parsePaymentMethod(lead.payment_method);
+                                                    if (!parsed) return <span className="text-muted-foreground">—</span>;
+                                                    const label = PAYMENT_LABELS[parsed.type] || parsed.type;
+                                                    if (parsed.type === 'hubla_boleto') {
+                                                        return (
+                                                            <div className="space-y-0.5">
+                                                                <span className="font-medium block">{label}</span>
+                                                                {parsed.hubla_entrada != null && (
+                                                                    <span className="text-xs text-muted-foreground block">
+                                                                        HUBLA: {fmtBRL(parsed.hubla_entrada)}
+                                                                    </span>
+                                                                )}
+                                                                {parsed.boleto_parcelado != null && (
+                                                                    <span className="text-xs text-muted-foreground block">
+                                                                        Boleto: {fmtBRL(parsed.boleto_parcelado)}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    }
+                                                    return <span className="font-medium">{label}</span>;
+                                                })()}
                                             </TableCell>
                                             <TableCell className="text-right font-mono text-sm font-semibold" style={{ color: NEON_GREEN }}>
                                                 {fmtBRL(lead.sale_value)}

@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Upload, FileText, X, ImageIcon } from 'lucide-react';
+import { Upload, FileText, X, ImageIcon, Split } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface SaleDialogProps {
@@ -16,6 +16,7 @@ interface SaleDialogProps {
 const PAYMENT_METHODS = [
   { id: 'boleto', label: 'Boleto' },
   { id: 'hubla', label: 'HUBLA' },
+  { id: 'hubla_boleto', label: 'HUBLA + Boleto' },
 ];
 
 export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDialogProps) {
@@ -25,6 +26,9 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  // Campos extras para HUBLA + Boleto
+  const [hublaEntrada, setHublaEntrada] = useState('');
+  const [boletoParcelado, setBoletoParcelado] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
@@ -68,12 +72,27 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
   const handleConfirm = () => {
     const sv = parseFloat(saleValue.replace(/\D/g, '')) || 0;
     const cv = parseFloat(cashValue.replace(/\D/g, '')) || 0;
-    onConfirm(sv, cv, comprovanteFile, paymentMethod);
+
+    // Para HUBLA + Boleto, serializamos os detalhes no paymentMethod
+    let finalPaymentMethod = paymentMethod;
+    if (paymentMethod === 'hubla_boleto') {
+      const entrada = parseFloat(hublaEntrada.replace(/\D/g, '')) || 0;
+      const parcelado = parseFloat(boletoParcelado.replace(/\D/g, '')) || 0;
+      finalPaymentMethod = JSON.stringify({
+        type: 'hubla_boleto',
+        hubla_entrada: entrada,
+        boleto_parcelado: parcelado,
+      });
+    }
+
+    onConfirm(sv, cv, comprovanteFile, finalPaymentMethod);
     setSaleValue('');
     setCashValue('');
     setComprovanteFile(null);
     setPreviewUrl(null);
     setPaymentMethod(null);
+    setHublaEntrada('');
+    setBoletoParcelado('');
   };
 
   const formatCurrency = (value: string) => {
@@ -126,14 +145,20 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
           {/* Método de Pagamento */}
           <div className="space-y-2">
             <Label>Método de Pagamento</Label>
-            <div className="flex gap-3">
+            <div className="flex flex-wrap gap-3">
               {PAYMENT_METHODS.map(pm => {
                 const selected = paymentMethod === pm.id;
                 return (
                   <button
                     key={pm.id}
                     type="button"
-                    onClick={() => setPaymentMethod(selected ? null : pm.id)}
+                    onClick={() => {
+                      setPaymentMethod(selected ? null : pm.id);
+                      if (pm.id !== 'hubla_boleto') {
+                        setHublaEntrada('');
+                        setBoletoParcelado('');
+                      }
+                    }}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
                       ${selected
                         ? 'border-primary bg-primary/10 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]'
@@ -143,11 +168,50 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                     <div className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-all ${selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
                       {selected && <div className="w-1.5 h-1.5 rounded-sm bg-primary-foreground" />}
                     </div>
+                    {pm.id === 'hubla_boleto' && <Split className="w-3.5 h-3.5" />}
                     {pm.label}
                   </button>
                 );
               })}
             </div>
+
+            {/* Campos extras para HUBLA + Boleto */}
+            {paymentMethod === 'hubla_boleto' && (
+              <div className="mt-3 p-3 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
+                <p className="text-xs text-primary font-semibold uppercase tracking-wide flex items-center gap-1.5">
+                  <Split className="w-3 h-3" />
+                  Detalhes HUBLA + Boleto
+                </p>
+                {/* Valor entrada Hubla */}
+                <div className="space-y-1">
+                  <Label htmlFor="hubla-entrada" className="text-xs">Valor da entrada (HUBLA à vista)</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                    <Input
+                      id="hubla-entrada"
+                      placeholder="0"
+                      value={formatCurrency(hublaEntrada)}
+                      onChange={e => setHublaEntrada(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+                {/* Valor parcelado Boleto */}
+                <div className="space-y-1">
+                  <Label htmlFor="boleto-parcelado" className="text-xs">Valor parcelado no Boleto</Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
+                    <Input
+                      id="boleto-parcelado"
+                      placeholder="0"
+                      value={formatCurrency(boletoParcelado)}
+                      onChange={e => setBoletoParcelado(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Comprovante */}
