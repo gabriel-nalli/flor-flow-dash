@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
@@ -22,7 +23,8 @@ const ORIGIN_OPTIONS = [
 ];
 
 export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
-  const { isAdmin, selectedProfile } = useProfileSelector();
+  const { isAdmin } = useProfileSelector();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const [saving, setSaving] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
@@ -75,9 +77,9 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
       if (isAdmin && assignedTo !== 'none') {
         payload.assigned_to = assignedTo;
         payload.status = 'contato_1_feito';
-      } else if (!isAdmin) {
-        // Vendedora criando lead → vai direto para os leads dela
-        payload.assigned_to = selectedProfile.id;
+      } else if (!isAdmin && user?.id) {
+        // Vendedora: atribuir automaticamente a ela mesma
+        payload.assigned_to = user.id;
         payload.status = 'contato_1_feito';
       }
 
@@ -85,7 +87,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
       if (error) throw error;
 
       queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-leads'] });
       toast.success('Lead adicionado com sucesso! ✅');
       resetForm();
       onOpenChange(false);
@@ -238,9 +240,10 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
           )}
 
           <Button
+            type="button"
             onClick={handleSubmit}
-            disabled={saving || !canSubmit}
-            className="w-full gap-2 mt-2"
+            disabled={saving}
+            className={`w-full gap-2 mt-2 transition-opacity ${!canSubmit ? 'opacity-60' : ''}`}
           >
             <Plus size={16} />
             {saving ? 'Salvando...' : 'Adicionar Lead'}

@@ -58,7 +58,7 @@ export default function Leads() {
     ? collectedLeads
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
-  const totalLeads = isAdmin ? allLeads.length : myLeads.length;
+  const totalLeads = allLeads.length;
   const coletados = collectedLeads.length;
   const pendentes = webinarLeads.length;
 
@@ -77,26 +77,23 @@ export default function Leads() {
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
-              {isAdmin ? 'Total' : 'Meus Leads'}: <span className="font-bold text-foreground">{totalLeads}</span>
+              Total: <span className="font-bold text-foreground">{totalLeads}</span>
             </span>
-            {isAdmin && (
-              <>
-                <span className="flex items-center gap-1.5 text-xs text-green-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
-                  Coletados: <span className="font-bold text-green-500">{coletados}</span>
-                </span>
-                <span className="flex items-center gap-1.5 text-xs text-amber-500">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
-                  Pendentes: <span className="font-bold text-amber-500">{pendentes}</span>
-                </span>
-              </>
-            )}
+            <span className="flex items-center gap-1.5 text-xs text-green-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
+              Coletados: <span className="font-bold text-green-500">{coletados}</span>
+            </span>
+            <span className="flex items-center gap-1.5 text-xs text-amber-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
+              Pendentes: <span className="font-bold text-amber-500">{pendentes}</span>
+            </span>
           </div>
         </div>
 
         <div className="flex gap-2">
           {isAdmin && (
             <button
+              type="button"
               onClick={() => {
                 const headers = ['Nome', 'WhatsApp', 'Email', 'Instagram', 'Faturamento', 'Origem', 'Status', 'Responsável', 'Venda', 'Valor Venda', 'Valor Cash', 'Webinar Tag', 'Criado em'];
                 const rows = allLeads.map(l => [
@@ -130,7 +127,8 @@ export default function Leads() {
             </button>
           )}
           <button
-            onClick={() => setNewLeadOpen(true)}
+            type="button"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNewLeadOpen(true); }}
             className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-4 py-2 rounded-lg transition-all text-sm font-bold"
           >
             <Plus size={14} />
@@ -142,11 +140,13 @@ export default function Leads() {
       <div className="bg-card rounded-2xl overflow-hidden">
         <div className="flex">
           <button
+            type="button"
             onClick={() => setActiveTab('meus')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'meus'
-              ? 'text-foreground'
-              : 'text-muted-foreground hover:text-foreground/70'
-              }`}
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
+              activeTab === 'meus'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/70'
+            }`}
           >
             {isAdmin ? 'Leads Coletados' : 'Meus Leads'}
             {activeTab === 'meus' && (
@@ -154,11 +154,13 @@ export default function Leads() {
             )}
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('webinar')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
-              ? 'text-foreground'
-              : 'text-muted-foreground hover:text-foreground/70'
-              }`}
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
+              activeTab === 'webinar'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/70'
+            }`}
           >
             Leads Webinar
             {activeTab === 'webinar' && (
