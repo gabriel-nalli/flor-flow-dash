@@ -8,7 +8,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Plus, User, Instagram, MessageCircle, Mail, DollarSign, Tag, Briefcase, AlertCircle, Wallet, Heart, ChevronDown, ChevronUp } from 'lucide-react';
+import { Plus, User, Instagram, MessageCircle, Mail, DollarSign, Tag, Briefcase, AlertCircle, Wallet, Heart, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
 
 interface NewLeadDialogProps {
   open: boolean;
@@ -40,6 +40,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
   const [maiorDificuldade, setMaiorDificuldade] = useState('');
   const [rendaFamiliar, setRendaFamiliar] = useState('');
   const [quemInveste, setQuemInveste] = useState('');
+  const [webinarDate, setWebinarDate] = useState('');
 
   const sellers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
 
@@ -47,6 +48,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
     setNome(''); setWhatsapp(''); setInstagram(''); setEmail('');
     setFaturamento(''); setOrigem('webinar'); setAssignedTo('none');
     setProfissao(''); setMaiorDificuldade(''); setRendaFamiliar(''); setQuemInveste('');
+    setWebinarDate('');
     setShowOptional(false);
   };
 
@@ -70,6 +72,10 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
         maior_dificuldade: maiorDificuldade.trim() || null,
         renda_familiar: rendaFamiliar.trim() || null,
         quem_investe: quemInveste.trim() || null,
+        // Data do webinar (apenas quando origem = webinar)
+        ...(origem === 'webinar' && webinarDate
+          ? { webinar_date_tag: webinarDate }
+          : {}),
       };
 
       if (isAdmin && assignedTo !== 'none') {
@@ -146,7 +152,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             </div>
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground font-medium">Origem</label>
-              <Select value={origem} onValueChange={setOrigem}>
+              <Select value={origem} onValueChange={(v) => { setOrigem(v); if (v !== 'webinar') setWebinarDate(''); }}>
                 <SelectTrigger className="bg-secondary border-none h-10">
                   <Tag size={14} className="mr-2 text-muted-foreground" />
                   <SelectValue />
@@ -159,6 +165,29 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
               </Select>
             </div>
           </div>
+
+          {/* Data do Webinar — aparece apenas quando origem = webinar */}
+          {origem === 'webinar' && (
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <CalendarDays size={13} className="text-primary" />
+                Data do Webinar
+                <span className="text-primary font-bold">*</span>
+              </label>
+              <div className="relative">
+                <CalendarDays size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                <Input
+                  type="date"
+                  value={webinarDate}
+                  onChange={e => setWebinarDate(e.target.value)}
+                  className="pl-9 bg-secondary border-none"
+                />
+              </div>
+              <p className="text-[11px] text-muted-foreground">
+                Informe quando aconteceu o webinar deste lead
+              </p>
+            </div>
+          )}
 
           {/* Responsável — somente Admin */}
           {isAdmin && (
