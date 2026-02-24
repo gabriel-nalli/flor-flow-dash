@@ -28,17 +28,15 @@ export default function AppLayout() {
           <SidebarTrigger />
           <div className="flex-1" />
           <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={signOut}
-                className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                title="Sair da conta"
-              >
-                <LogOut className="w-4 h-4" />
-              </Button>
-            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={signOut}
+              className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              title="Sair da conta"
+            >
+              <LogOut className="w-4 h-4" />
+            </Button>
             <Button
               variant="ghost"
               size="icon"
