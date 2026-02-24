@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
 import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { User, Sun, Moon } from 'lucide-react';
+import { User, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function AppLayout() {
   const { selectedProfile, setSelectedProfile, isAdmin } = useProfileSelector();
+  const { signOut } = useAuth();
   const [isLight, setIsLight] = useState(() => {
     return localStorage.getItem('theme') === 'light';
   });
@@ -26,6 +28,17 @@ export default function AppLayout() {
           <SidebarTrigger />
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={signOut}
+                className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                title="Sair da conta"
+              >
+                <LogOut className="w-4 h-4" />
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="icon"
