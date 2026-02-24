@@ -50,22 +50,20 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
     setShowOptional(false);
   };
 
-  const canSubmit = nome.trim() && whatsapp.trim() && instagram.trim() && faturamento.trim();
+  const canSubmit = nome.trim() && whatsapp.trim();
 
   const handleSubmit = async () => {
     if (!nome.trim()) { toast.error('Nome é obrigatório'); return; }
     if (!whatsapp.trim()) { toast.error('WhatsApp é obrigatório'); return; }
-    if (!instagram.trim()) { toast.error('Instagram é obrigatório'); return; }
-    if (!faturamento.trim()) { toast.error('Faturamento é obrigatório'); return; }
 
     setSaving(true);
     try {
       const payload: Record<string, unknown> = {
         nome: nome.trim(),
         whatsapp: whatsapp.trim(),
-        instagram: instagram.trim(),
+        instagram: instagram.trim() || null,
         email: email.trim() || null,
-        faturamento: faturamento.trim(),
+        faturamento: faturamento.trim() || null,
         origem,
         status: 'novo',
         profissao: profissao.trim() || null,
@@ -119,7 +117,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             </div>
           </div>
 
-          {/* WhatsApp * + Instagram * */}
+          {/* WhatsApp * + Instagram */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground font-medium">WhatsApp *</label>
@@ -129,7 +127,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Instagram *</label>
+              <label className="text-xs text-muted-foreground font-medium">Instagram</label>
               <div className="relative">
                 <Instagram size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input placeholder="@usuario" value={instagram} onChange={e => setInstagram(e.target.value)} className="pl-9 bg-secondary border-none" />
@@ -137,10 +135,10 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             </div>
           </div>
 
-          {/* Faturamento * + Origem */}
+          {/* Faturamento + Origem */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Faturamento *</label>
+              <label className="text-xs text-muted-foreground font-medium">Faturamento</label>
               <div className="relative">
                 <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input placeholder="Ex: 5000" value={faturamento} onChange={e => setFaturamento(e.target.value)} className="pl-9 bg-secondary border-none" />
