@@ -52,12 +52,11 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
     setShowOptional(false);
   };
 
-  const canSubmit = nome.trim() && whatsapp.trim() && (origem !== 'webinar' || webinarDate.trim() !== '');
+  const canSubmit = nome.trim() && whatsapp.trim();
 
   const handleSubmit = async () => {
     if (!nome.trim()) { toast.error('Nome é obrigatório'); return; }
     if (!whatsapp.trim()) { toast.error('WhatsApp é obrigatório'); return; }
-    if (origem === 'webinar' && !webinarDate.trim()) { toast.error('Data do Webinário é obrigatória'); return; }
 
     setSaving(true);
     try {
@@ -169,14 +168,11 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
 
           {/* Data do Webinar — aparece apenas quando origem = webinar */}
           {origem === 'webinar' && (
-            <div className="space-y-1.5 rounded-lg border p-3 bg-primary/5" style={{ borderColor: webinarDate ? 'hsl(var(--primary) / 0.4)' : 'hsl(var(--destructive) / 0.5)' }}>
-              <label className="text-xs font-semibold flex items-center gap-1.5" style={{ color: webinarDate ? 'hsl(var(--primary))' : 'hsl(var(--destructive))' }}>
-                <CalendarDays size={13} />
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <CalendarDays size={13} className="text-primary" />
                 Data do Webinário
-                <span className="font-bold">*</span>
-                {!webinarDate && (
-                  <span className="ml-auto text-[10px] font-normal opacity-80">Obrigatório</span>
-                )}
+                <span className="text-[10px] opacity-60 ml-1">(opcional)</span>
               </label>
               <div className="relative">
                 <CalendarDays size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -188,7 +184,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
                 />
               </div>
               <p className="text-[11px] text-muted-foreground">
-                📅 Informe a data do webinário deste lead — necessário para filtrar no Funil de Webinário
+                📅 Informe a data do webinário para filtrar leads por evento
               </p>
             </div>
           )}

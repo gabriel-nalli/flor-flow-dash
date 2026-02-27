@@ -197,97 +197,101 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
               <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">Nenhum lead disponível</td></tr>
             ) : filtered.map(lead => (
               <React.Fragment key={lead.id}>
-              <tr className="hover:bg-muted/30 transition-colors group">
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <LeadAvatar name={lead.nome} />
-                    <span className="font-medium text-foreground text-sm">{lead.nome}</span>
-                  </div>
-                </td>
-                <td className="px-4 py-4">
-                  <div className="flex items-center gap-1.5">
-                    {lead.instagram && (
-                      <a
-                        href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <div className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity cursor-pointer">
-                          <Instagram size={14} className="text-white" />
-                        </div>
-                      </a>
-                    )}
-                  </div>
-                </td>
-                <td className="px-4 py-4 text-sm text-foreground font-medium">
-                  {lead.faturamento ? (isNaN(Number(lead.faturamento)) ? lead.faturamento : `R$ ${Number(lead.faturamento).toLocaleString('pt-BR')}`) : '—'}
-                </td>
-                <td className="px-4 py-4">
-                  {lead.webinar_date_tag ? (
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
-                      {lead.webinar_date_tag}
+                <tr className="hover:bg-muted/30 transition-colors group">
+                  <td className="px-6 py-4">
+                    <div className="flex items-center gap-3">
+                      <LeadAvatar name={lead.nome} />
+                      <span className="font-medium text-foreground text-sm">{lead.nome}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-4">
+                    <div className="flex items-center gap-1.5">
+                      {lead.instagram && (
+                        <a
+                          href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={e => e.stopPropagation()}
+                        >
+                          <div className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity cursor-pointer">
+                            <Instagram size={14} className="text-white" />
+                          </div>
+                        </a>
+                      )}
+                    </div>
+                  </td>
+                  <td className="px-4 py-4 text-sm text-foreground font-medium">
+                    {lead.faturamento ? (isNaN(Number(lead.faturamento)) ? lead.faturamento : `R$ ${Number(lead.faturamento).toLocaleString('pt-BR')}`) : '—'}
+                  </td>
+                  <td className="px-4 py-4">
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
+                      <span className="capitalize">{lead.origem || 'webinar'}</span>
+                      {lead.webinar_date_tag && (
+                        <>
+                          <span className="opacity-40">·</span>
+                          <span>{lead.webinar_date_tag}</span>
+                        </>
+                      )}
                     </span>
-                  ) : '—'}
-                </td>
-                <td className="px-4 py-4 text-sm text-muted-foreground">
-                  {lead.created_at ? format(parseISO(lead.created_at), "dd MMM", { locale: ptBR }) : '—'}
-                </td>
-                <td className="px-4 py-4">
-                  <NeonStatusBadge status={lead.status} />
-                </td>
-                <td className="px-6 py-4 text-right">
-                  <div className="flex items-center justify-end gap-1">
-                    <button
-                      onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
-                      className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                      title="Mais informações"
-                    >
-                      {expandedId === lead.id ? <ChevronUp size={16} className="text-primary" /> : <ChevronDown size={16} className="text-muted-foreground" />}
-                    </button>
-                    {lead.whatsapp && (
-                      <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Enviar WhatsApp">
-                        <MessageCircle size={16} className="text-muted-foreground hover:text-green-500" />
-                      </button>
-                    )}
-                    {!lead.assigned_to && (
-                      <Button
-                        size="sm"
-                        onClick={() => handleCollect(lead)}
-                        disabled={collectingId === lead.id}
-                        className="gap-1 rounded-lg text-xs"
+                  </td>
+                  <td className="px-4 py-4 text-sm text-muted-foreground">
+                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM", { locale: ptBR }) : '—'}
+                  </td>
+                  <td className="px-4 py-4">
+                    <NeonStatusBadge status={lead.status} />
+                  </td>
+                  <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        title="Mais informações"
                       >
-                        <CheckCircle size={14} />
-                        {collectingId === lead.id ? 'Coletando...' : 'Coletar'}
-                      </Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
-              {expandedId === lead.id && (
-                <tr className="bg-muted/20">
-                  <td colSpan={7} className="px-6 py-4">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <span className="text-muted-foreground text-xs block mb-1">Profissão</span>
-                        <span className="text-foreground">{lead.profissao || '—'}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground text-xs block mb-1">Maior Dificuldade</span>
-                        <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground text-xs block mb-1">Renda Familiar</span>
-                        <span className="text-foreground">{lead.renda_familiar || '—'}</span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground text-xs block mb-1">Quem Investe</span>
-                        <span className="text-foreground">{lead.quem_investe || '—'}</span>
-                      </div>
+                        {expandedId === lead.id ? <ChevronUp size={16} className="text-primary" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+                      </button>
+                      {lead.whatsapp && (
+                        <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Enviar WhatsApp">
+                          <MessageCircle size={16} className="text-muted-foreground hover:text-green-500" />
+                        </button>
+                      )}
+                      {!lead.assigned_to && (
+                        <Button
+                          size="sm"
+                          onClick={() => handleCollect(lead)}
+                          disabled={collectingId === lead.id}
+                          className="gap-1 rounded-lg text-xs"
+                        >
+                          <CheckCircle size={14} />
+                          {collectingId === lead.id ? 'Coletando...' : 'Coletar'}
+                        </Button>
+                      )}
                     </div>
                   </td>
                 </tr>
-              )}
+                {expandedId === lead.id && (
+                  <tr className="bg-muted/20">
+                    <td colSpan={7} className="px-6 py-4">
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Profissão</span>
+                          <span className="text-foreground">{lead.profissao || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Maior Dificuldade</span>
+                          <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Renda Familiar</span>
+                          <span className="text-foreground">{lead.renda_familiar || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Quem Investe</span>
+                          <span className="text-foreground">{lead.quem_investe || '—'}</span>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </React.Fragment>
             ))}
           </tbody>
