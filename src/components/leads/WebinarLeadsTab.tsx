@@ -225,13 +225,12 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                   </td>
                   <td className="px-4 py-4">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
-                      <span className="capitalize">{lead.origem || 'webinar'}</span>
-                      {lead.webinar_date_tag && (
-                        <>
-                          <span className="opacity-40">·</span>
-                          <span>{lead.webinar_date_tag}</span>
-                        </>
-                      )}
+                      {lead.webinar_date_tag
+                        ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                          ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{format(parseISO(lead.webinar_date_tag), 'dd/MM')}</span></>
+                          : <span>{lead.webinar_date_tag}</span>
+                        : <span className="capitalize">{lead.origem || 'webinar'}</span>
+                      }
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm text-muted-foreground">

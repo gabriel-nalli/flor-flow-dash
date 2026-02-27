@@ -363,14 +363,13 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                     )}
                   </td>
                   <td className="px-4 py-4">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground capitalize">
-                      <span>{lead.origem || '—'}</span>
-                      {lead.webinar_date_tag && (
-                        <>
-                          <span className="opacity-40 normal-case">·</span>
-                          <span className="normal-case">{lead.webinar_date_tag}</span>
-                        </>
-                      )}
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
+                      {lead.webinar_date_tag
+                        ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                          ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{lead.webinar_date_tag.slice(8, 10) + '/' + lead.webinar_date_tag.slice(5, 7)}</span></>
+                          : <span>{lead.webinar_date_tag}</span>
+                        : <span className="capitalize">{lead.origem || '—'}</span>
+                      }
                     </span>
                   </td>
                   <td className="px-4 py-4"><NeonStatusBadge status={lead.status} /></td>
