@@ -35,14 +35,24 @@ export default function WebinarFunnel() {
     },
   });
 
+  // Tags ISO (YYYY-MM-DD) = leads adicionados manualmente — não entram no funil
+  const isManualTag = (tag: string | null | undefined) =>
+    !!tag && /^\d{4}-\d{2}-\d{2}$/.test(tag);
+
   const uniqueTags = useMemo(() =>
-    Array.from(new Set(allLeads.map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse(),
+    Array.from(new Set(
+      allLeads
+        .filter(l => l.webinar_date_tag && !isManualTag(l.webinar_date_tag))
+        .map(l => l.webinar_date_tag)
+        .filter(Boolean)
+    )).sort().reverse(),
     [allLeads]
   );
 
   const webinarLeads = useMemo(() =>
     allLeads.filter(l =>
       l.origem === 'webinar' &&
+      !isManualTag(l.webinar_date_tag) &&
       (selectedTag === 'all' || l.webinar_date_tag === selectedTag)
     ),
     [allLeads, selectedTag]
