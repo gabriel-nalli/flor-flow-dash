@@ -262,7 +262,11 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os webinários</SelectItem>
-                {uniqueTags.map(tag => <SelectItem key={tag} value={tag}>{tag}</SelectItem>)}
+                {uniqueTags.map(tag => {
+                  const isIso = /^\d{4}-\d{2}-\d{2}$/.test(tag);
+                  const label = isIso ? `Webinar · ${tag.slice(8, 10)}/${tag.slice(5, 7)}` : tag;
+                  return <SelectItem key={tag} value={tag}>{label}</SelectItem>;
+                })}
               </SelectContent>
             </Select>
           </NeonSelectWrapper>
