@@ -87,10 +87,17 @@ export function SalesAndLossesTable({
         enabled: isAdmin,
     });
 
-    const sellers = useMemo(() =>
-        dbProfiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name),
-        [dbProfiles]
-    );
+    const sellers = useMemo(() => {
+        const seen = new Set<string>();
+        return dbProfiles.filter((p: any) => {
+            if (!p.full_name || p.role === 'ADMIN') return false;
+            if (p.full_name.toLowerCase().includes('test')) return false;
+            if (p.id.startsWith('00000000')) return false;
+            if (seen.has(p.id)) return false;
+            seen.add(p.id);
+            return true;
+        });
+    }, [dbProfiles]);
 
     // profileMap com IDs reais do banco
     const profileMap = useMemo(() =>
