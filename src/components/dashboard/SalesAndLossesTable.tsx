@@ -1,4 +1,6 @@
 import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +10,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { ExternalLink, TrendingUp, XCircle, FileText, Filter, CalendarIcon } from 'lucide-react';
-import { TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
 import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
@@ -20,7 +21,7 @@ interface SalesAndLossesTableProps {
     currentUserId?: string;
 }
 
-const profileMap = Object.fromEntries(TEAM_MEMBERS.map(p => [p.id, p.full_name]));
+// profileMap será construído dinamicamente dos profiles reais do banco
 
 const fmtDate = (d: string | null | undefined) => {
     if (!d) return '—';
@@ -76,9 +77,25 @@ export function SalesAndLossesTable({
 
     const NEON_GREEN = '#00ff9d';
 
+    // Busca profiles reais do banco (IDs batem com assigned_to)
+    const { data: dbProfiles = [] } = useQuery({
+        queryKey: ['profiles'],
+        queryFn: async () => {
+            const { data } = await supabase.from('profiles').select('id, full_name, role');
+            return data || [];
+        },
+        enabled: isAdmin,
+    });
+
     const sellers = useMemo(() =>
-        TEAM_MEMBERS.filter(p => p.role !== 'ADMIN'),
-        []
+        dbProfiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name),
+        [dbProfiles]
+    );
+
+    // profileMap com IDs reais do banco
+    const profileMap = useMemo(() =>
+        Object.fromEntries(dbProfiles.map((p: any) => [p.id, p.full_name])),
+        [dbProfiles]
     );
 
     const applyBaseFilter = (list: any[]) => {
