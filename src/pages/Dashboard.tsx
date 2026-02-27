@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, LucideIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, Filter, LucideIcon } from 'lucide-react';
 import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart';
 import { AlertLeadsDialog } from '@/components/dashboard/AlertLeadsDialog';
 import { isToday, parseISO, format } from 'date-fns';
@@ -48,6 +49,7 @@ export default function Dashboard() {
   const { selectedProfile, isAdmin } = useProfileSelector();
   const [showFollowupDialog, setShowFollowupDialog] = useState(false);
   const [showSemResponsavelDialog, setShowSemResponsavelDialog] = useState(false);
+  const [segmentFilter, setSegmentFilter] = useState('all');
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
@@ -81,8 +83,33 @@ export default function Dashboard() {
     },
   });
 
+  // Helper: tag ISO = lead manual
+  const isManualTag = (tag: string | null | undefined) =>
+    !!tag && /^\d{4}-\d{2}-\d{2}$/.test(tag);
+
+  // Tags reais (webinarios automaticos) para o dropdown
+  const realWebinarTags = useMemo(() =>
+    Array.from(new Set(
+      leads
+        .filter(l => l.webinar_date_tag && !isManualTag(l.webinar_date_tag))
+        .map(l => l.webinar_date_tag as string)
+    )).sort().reverse(),
+    [leads]
+  );
+
   // Filter leads based on selected profile
-  const visibleLeads = isAdmin ? leads : leads.filter(l => l.assigned_to === selectedProfile.id);
+  const profileFilteredLeads = isAdmin ? leads : leads.filter(l => l.assigned_to === selectedProfile.id);
+
+  // Segment filter (admin only)
+  const segmentedLeads = useMemo(() => {
+    if (!isAdmin || segmentFilter === 'all') return profileFilteredLeads;
+    if (segmentFilter === 'webinars') return profileFilteredLeads.filter(l => l.origem === 'webinar' && !isManualTag(l.webinar_date_tag));
+    if (segmentFilter === 'manual') return profileFilteredLeads.filter(l => l.origem !== 'webinar' || isManualTag(l.webinar_date_tag));
+    // specific webinar tag
+    return profileFilteredLeads.filter(l => l.webinar_date_tag === segmentFilter);
+  }, [profileFilteredLeads, segmentFilter, isAdmin]);
+
+  const visibleLeads = segmentedLeads;
   const visibleLeadIds = new Set(visibleLeads.map(l => l.id));
 
   // Count from lead_actions history (acumulativo)
@@ -202,15 +229,35 @@ export default function Dashboard() {
             {isAdmin ? 'Visão geral do time' : `Visão de ${selectedProfile.full_name}`}
           </p>
         </div>
-        {isAdmin && (
-          <button
-            onClick={exportCSV}
-            className="flex items-center gap-2 bg-card hover:bg-muted text-muted-foreground hover:text-foreground px-5 py-2.5 rounded-lg transition-all text-sm font-semibold group"
-          >
-            <Download size={16} className="group-hover:-translate-y-0.5 transition-transform" />
-            Exportar CSV
-          </button>
-        )}
+        <div className="flex items-center gap-3 flex-wrap">
+          {isAdmin && (
+            <div className="flex items-center gap-2">
+              <Filter size={14} className="text-muted-foreground" />
+              <Select value={segmentFilter} onValueChange={setSegmentFilter}>
+                <SelectTrigger className="w-[220px] bg-card">
+                  <SelectValue placeholder="Segmento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os leads</SelectItem>
+                  <SelectItem value="webinars">Todos os Webinários</SelectItem>
+                  {realWebinarTags.map(tag => (
+                    <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                  ))}
+                  <SelectItem value="manual">Leads Manuais</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+          {isAdmin && (
+            <button
+              onClick={exportCSV}
+              className="flex items-center gap-2 bg-card hover:bg-muted text-muted-foreground hover:text-foreground px-5 py-2.5 rounded-lg transition-all text-sm font-semibold group"
+            >
+              <Download size={16} className="group-hover:-translate-y-0.5 transition-transform" />
+              Exportar CSV
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Alerts */}
@@ -260,7 +307,7 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <SalesFunnelChart leads={isAdmin ? leads : visibleLeads} actions={allActions} isAdmin={isAdmin} />
+      <SalesFunnelChart leads={isAdmin ? segmentedLeads : visibleLeads} actions={allActions} isAdmin={isAdmin} />
 
       {isAdmin && (
         <Card>
