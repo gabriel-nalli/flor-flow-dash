@@ -11,6 +11,7 @@ import Leads from "@/pages/Leads";
 import Routine from "@/pages/Routine";
 import SalesGoal from "@/pages/SalesGoal";
 import WebinarFunnel from "@/pages/WebinarFunnel";
+import Commissions from "@/pages/Commissions";
 import Login from "@/pages/Login";
 import NotFound from "@/pages/NotFound";
 
@@ -42,6 +43,7 @@ function ProtectedRoutes() {
           <Route path="/routine" element={<Routine />} />
           <Route path="/meta" element={<AdminRoute><SalesGoal /></AdminRoute>} />
           <Route path="/funil-webinar" element={<AdminRoute><WebinarFunnel /></AdminRoute>} />
+          <Route path="/comissoes" element={<AdminRoute><Commissions /></AdminRoute>} />
         </Route>
         <Route path="*" element={<NotFound />} />
       </Routes>

@@ -1,4 +1,4 @@
-import { Users, CheckSquare, LayoutDashboard, Target, Filter } from 'lucide-react';
+import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import logoBelaflor from '@/assets/logo-belaflor.svg';
@@ -18,6 +18,7 @@ export function AppSidebar() {
     ...(isAdmin ? [
       { icon: Filter, label: 'Funil Webinário', path: '/funil-webinar' },
       { icon: Target, label: 'Meta de Vendas', path: '/meta' },
+      { icon: DollarSign, label: 'Comissões', path: '/comissoes' },
     ] : []),
   ];
 

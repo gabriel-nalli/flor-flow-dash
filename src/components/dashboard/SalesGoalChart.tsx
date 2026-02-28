@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
 
 const ADMIN_GOAL = 200000;
 const SELLER_GOAL = 50000;
@@ -104,7 +105,17 @@ interface SalesGoalChartProps {
 
 export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSellerChange }: SalesGoalChartProps) {
   const GOAL = isAdmin ? ADMIN_GOAL : SELLER_GOAL;
-  const sellers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
+
+  // Busca os perfis REAIS do banco (IDs corretos para cruzar com assigned_to dos leads)
+  const { data: profiles = [] } = useQuery({
+    queryKey: ['profiles'],
+    queryFn: async () => {
+      const { data } = await supabase.from('profiles').select('*');
+      return data || [];
+    },
+  });
+
+  const sellers = profiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
 
   const wonLeads = useMemo(() =>
     leads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup'),

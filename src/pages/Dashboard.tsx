@@ -139,6 +139,9 @@ export default function Dashboard() {
 
   const teamMembers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
 
+  // Usa os perfis REAIS do banco (IDs corretos) para exibir dados por vendedora
+  const realTeamMembers = profiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
+
   const exportCSV = () => {
     const now = format(new Date(), 'yyyy-MM-dd HH:mm');
     const allLeadIds = new Set(leads.map(l => l.id));
@@ -314,7 +317,7 @@ export default function Dashboard() {
           <CardHeader><CardTitle>Vendas por Vendedora</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {teamMembers.map(p => {
+              {realTeamMembers.map((p: any) => {
                 const pWon = leads.filter(l => l.assigned_to === p.id && (l.sale_status === 'won_call' || l.sale_status === 'won_followup'));
                 const bruto = pWon.reduce((s, l) => s + (Number(l.sale_value) || 0), 0);
                 const cash = pWon.reduce((s, l) => s + (Number(l.cash_value) || 0), 0);
@@ -332,6 +335,10 @@ export default function Dashboard() {
                           <span className="text-muted-foreground">Cash-in:</span>
                           <span className="font-bold tabular-nums" style={{ color: 'hsl(160, 80%, 45%)' }}>R$ {cash.toLocaleString('pt-BR')}</span>
                         </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Vendas:</span>
+                          <span className="font-bold tabular-nums">{pWon.length}</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -342,20 +349,20 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {isAdmin && teamMembers.length > 0 && (
+      {isAdmin && realTeamMembers.length > 0 && (
         <Card>
           <CardHeader><CardTitle>Equipe</CardTitle></CardHeader>
           <CardContent>
             <Tabs defaultValue="overview">
               <TabsList className="flex-wrap h-auto">
                 <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-                {teamMembers.map(p => (
+                {realTeamMembers.map((p: any) => (
                   <TabsTrigger key={p.id} value={p.id}>{p.full_name}</TabsTrigger>
                 ))}
               </TabsList>
               <TabsContent value="overview" className="mt-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {teamMembers.map(p => {
+                  {realTeamMembers.map((p: any) => {
                     const pLeads = leads.filter(l => l.assigned_to === p.id);
                     const pActions = todayActions.filter(a => a.user_id === p.id);
                     return (
@@ -374,7 +381,7 @@ export default function Dashboard() {
                   })}
                 </div>
               </TabsContent>
-              {teamMembers.map(p => {
+              {realTeamMembers.map((p: any) => {
                 const pLeads = leads.filter(l => l.assigned_to === p.id);
                 const pLeadIds = new Set(pLeads.map(l => l.id));
                 const pAllActions = allActions.filter(a => a.lead_id && pLeadIds.has(a.lead_id));
