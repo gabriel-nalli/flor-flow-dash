@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import {
     Upload, Calculator, Download, Users, DollarSign,
     ChevronDown, ChevronRight, Info, CheckCircle2, AlertCircle,
-    Zap, RefreshCw, Search
+    Zap, RefreshCw
 } from 'lucide-react';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -24,11 +24,14 @@ interface TmbPayment {
     pedido_id?: number;
     produto_id?: number;
     valor_total?: number;
+    valor_parcela?: number;
     parcelas?: number;
     status_pedido?: string;
     status_financeiro?: string;
+    melhor_dia_pagamento?: number | null;
     telefone?: string;
     documento?: string;
+    criado_em?: string;
 }
 
 interface SellerLead {
@@ -52,6 +55,8 @@ interface CommissionResult {
         pedido_id?: number;
         parcelas?: number;
         valor_total?: number;
+        melhor_dia_pagamento?: number | null;
+        criado_em?: string;
     }[];
     total_amount: number;
     payment_count: number;
@@ -145,6 +150,8 @@ function matchPaymentsToSellers(
             pedido_id: (payment as TmbPayment).pedido_id,
             parcelas: (payment as TmbPayment).parcelas,
             valor_total: (payment as TmbPayment).valor_total,
+            melhor_dia_pagamento: (payment as TmbPayment).melhor_dia_pagamento,
+            criado_em: (payment as TmbPayment).criado_em,
         });
         resultMap[seller].total_amount += payment.amount || 0;
         resultMap[seller].payment_count += 1;
@@ -161,6 +168,7 @@ export default function Commissions() {
     const [isCalculating, setIsCalculating] = useState(false);
     const [isFetchingTmb, setIsFetchingTmb] = useState(false);
     const [tmbPayments, setTmbPayments] = useState<TmbPayment[]>([]);
+    const [tmbTotalContratos, setTmbTotalContratos] = useState<number>(0);
 
     // Mapping upload
     const [mappingUploadStep, setMappingUploadStep] = useState<'idle' | 'preview' | 'done'>('idle');
@@ -170,14 +178,6 @@ export default function Commissions() {
     const [paymentUploadStep, setPaymentUploadStep] = useState<'idle' | 'preview' | 'done'>('idle');
     const [paymentPreview, setPaymentPreview] = useState<TmbPayment[]>([]);
 
-    // Date range for TMB fetch
-    const [dateStart, setDateStart] = useState(() => `${selectedMonth}-01`);
-    const [dateEnd, setDateEnd] = useState(() => {
-        const [y, m] = selectedMonth.split('-');
-        const lastDay = new Date(parseInt(y), parseInt(m), 0).getDate();
-        return `${selectedMonth}-${lastDay}`;
-    });
-
     const monthOptions = Array.from({ length: 6 }, (_, i) => {
         const d = new Date();
         d.setMonth(d.getMonth() - i);
@@ -186,10 +186,6 @@ export default function Commissions() {
 
     const handleMonthChange = (m: string) => {
         setSelectedMonth(m);
-        const [y, mo] = m.split('-');
-        const lastDay = new Date(parseInt(y), parseInt(mo), 0).getDate();
-        setDateStart(`${m}-01`);
-        setDateEnd(`${m}-${lastDay}`);
         setResults([]);
         setTmbPayments([]);
     };
@@ -213,11 +209,7 @@ export default function Commissions() {
         try {
             const { data: { session } } = await supabase.auth.getSession();
             const token = session?.access_token;
-            const params = new URLSearchParams({
-                data_inicio: dateStart,
-                data_final: dateEnd,
-                efetivado: 'true',
-            });
+            const params = new URLSearchParams({ reference_month: selectedMonth });
             const res = await fetch(
                 `https://vnrfzgbqiagxidcaeanr.supabase.co/functions/v1/tmb-fetch-payments?${params}`,
                 { headers: { Authorization: `Bearer ${token}` } }
@@ -226,7 +218,8 @@ export default function Commissions() {
             const json = await res.json();
             if (json.error) throw new Error(json.error);
             setTmbPayments(json.data || []);
-            toast.success(`${json.total} pedidos efetivados buscados da TMB! ✅`);
+            setTmbTotalContratos(json.totalContratos || 0);
+            toast.success(`${json.total} contratos ativos em ${formatMonth(selectedMonth)} (de ${json.totalContratos} no total) ✅`);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Erro desconhecido';
             toast.error(`Erro ao buscar da TMB: ${msg}`);
@@ -415,31 +408,26 @@ export default function Commissions() {
                             <CardTitle className="text-base flex items-center gap-2">
                                 <span className="w-6 h-6 rounded-full bg-green-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                                 <Zap className="w-4 h-4 text-green-400" />
-                                Buscar Pagamentos da TMB (Automático)
+                                Buscar Contratos Ativos da TMB
                             </CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-3">
                             <p className="text-xs text-muted-foreground">
-                                Busca diretamente os pedidos <strong>Efetivados</strong> no período selecionado.
+                                Busca todos os contratos <strong>Efetivados</strong> que estavam ativos em <strong>{formatMonth(selectedMonth)}</strong> — incluindo contratos antigos que ainda têm parcelas a pagar.
                             </p>
-                            <div className="grid grid-cols-2 gap-2">
-                                <div className="space-y-1">
-                                    <label className="text-xs text-muted-foreground">Data início</label>
-                                    <Input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} className="h-8 text-sm" />
-                                </div>
-                                <div className="space-y-1">
-                                    <label className="text-xs text-muted-foreground">Data fim</label>
-                                    <Input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} className="h-8 text-sm" />
-                                </div>
-                            </div>
+                            {tmbTotalContratos > 0 && (
+                                <p className="text-xs text-muted-foreground">
+                                    📊 Total de contratos na TMB: <strong>{tmbTotalContratos}</strong> → <strong>{tmbPayments.length}</strong> ativos em {formatMonth(selectedMonth)}
+                                </p>
+                            )}
                             <Button
                                 className="w-full gap-2"
                                 style={{ background: 'linear-gradient(135deg, hsl(142,70%,30%), hsl(142,70%,20%))' }}
                                 onClick={fetchFromTmb}
                                 disabled={isFetchingTmb}
                             >
-                                {isFetchingTmb ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-                                {isFetchingTmb ? 'Buscando na TMB...' : 'Buscar na TMB'}
+                                {isFetchingTmb ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                {isFetchingTmb ? 'Buscando na TMB...' : `Buscar Contratos de ${formatMonth(selectedMonth)}`}
                             </Button>
                             {tmbPayments.length > 0 && (
                                 <div className="space-y-2">
@@ -655,10 +643,11 @@ export default function Commissions() {
                                             <TableHead>Cliente</TableHead>
                                             <TableHead>Email</TableHead>
                                             <TableHead>Produto</TableHead>
-                                            <TableHead>Parcelas</TableHead>
-                                            <TableHead>Efetivado em</TableHead>
-                                            <TableHead className="text-right">Parcela</TableHead>
-                                            <TableHead className="text-right">V. Total</TableHead>
+                                            <TableHead className="text-center">Parcelas</TableHead>
+                                            <TableHead className="text-center">Dia Pag.</TableHead>
+                                            <TableHead>Contrato desde</TableHead>
+                                            <TableHead className="text-right">Parcela/mês</TableHead>
+                                            <TableHead className="text-right">V. Total Contrato</TableHead>
                                         </TableRow>
                                     </TableHeader>
                                     <TableBody>
@@ -666,10 +655,13 @@ export default function Commissions() {
                                             <TableRow key={i}>
                                                 <TableCell className="font-medium">{c.name}</TableCell>
                                                 <TableCell className="text-sm text-muted-foreground">{c.email || '—'}</TableCell>
-                                                <TableCell className="text-sm">{c.product || '—'}</TableCell>
+                                                <TableCell className="text-sm font-medium">{c.product || '—'}</TableCell>
                                                 <TableCell className="text-sm text-center">{c.parcelas || '—'}</TableCell>
+                                                <TableCell className="text-sm text-center">
+                                                    {c.melhor_dia_pagamento ? `Dia ${c.melhor_dia_pagamento}` : '—'}
+                                                </TableCell>
                                                 <TableCell className="text-sm">
-                                                    {c.paid_at ? new Date(c.paid_at).toLocaleDateString('pt-BR') : '—'}
+                                                    {c.criado_em ? new Date(c.criado_em).toLocaleDateString('pt-BR') : '—'}
                                                 </TableCell>
                                                 <TableCell className="text-right font-bold" style={{ color: NEON_GREEN }}>
                                                     {formatCurrency(c.amount)}
