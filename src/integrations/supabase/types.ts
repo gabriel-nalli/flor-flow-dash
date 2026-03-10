@@ -248,7 +248,7 @@ export type Database = {
             foreignKeyName: "lead_actions_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_dash"
             referencedColumns: ["id"]
           },
         ]
@@ -334,7 +334,7 @@ export type Database = {
             foreignKeyName: "leads_meeting_owner_fkey"
             columns: ["meeting_owner"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_dash"
             referencedColumns: ["id"]
           },
         ]
@@ -375,7 +375,7 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles: {
+      profiles_dash: {
         Row: {
           avatar_url: string | null
           full_name: string | null
@@ -435,7 +435,7 @@ export type Database = {
             foreignKeyName: "reminder_logs_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "profiles_dash"
             referencedColumns: ["id"]
           },
         ]

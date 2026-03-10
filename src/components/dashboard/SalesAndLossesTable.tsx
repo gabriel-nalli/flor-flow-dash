@@ -79,9 +79,9 @@ export function SalesAndLossesTable({
 
     // Busca profiles reais do banco (IDs batem com assigned_to)
     const { data: dbProfiles = [] } = useQuery({
-        queryKey: ['profiles'],
+        queryKey: ['profiles_dash'],
         queryFn: async () => {
-            const { data } = await supabase.from('profiles').select('id, full_name, role');
+            const { data } = await supabase.from('profiles_dash').select('id, full_name, role');
             return data || [];
         },
         enabled: isAdmin,

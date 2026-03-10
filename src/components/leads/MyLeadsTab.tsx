@@ -57,9 +57,9 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
 
   // Busca todos os perfis para o dialog de troca de responsável (apenas admin)
   const { data: allProfiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles_dash'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      const { data } = await supabase.from('profiles_dash').select('id, full_name, role');
       return data || [];
     },
     enabled: isAdmin,

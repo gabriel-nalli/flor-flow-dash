@@ -9,8 +9,8 @@ import logoBelaflor from '@/assets/logo-belaflor.svg';
 import { toast } from 'sonner';
 
 export default function Login() {
-  const { user, loading, signIn, signUp } = useAuth();
-  const [tab, setTab] = useState<'login' | 'signup'>('login');
+  const { user, loading, signIn, signUp, resetPassword } = useAuth();
+  const [tab, setTab] = useState<'login' | 'signup' | 'forgot'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -46,6 +46,24 @@ export default function Login() {
       setError(error.message);
     } else {
       toast.success('Conta criada! Entrando...');
+    }
+    setIsLoading(false);
+  };
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      setError('Informe seu email');
+      return;
+    }
+    setIsLoading(true);
+    setError('');
+    const { error } = await resetPassword(email);
+    if (error) {
+      setError('Erro ao enviar email de recuperação');
+    } else {
+      toast.success('Email de recuperação enviado! Verifique sua caixa de entrada.');
+      setTab('login');
     }
     setIsLoading(false);
   };
@@ -87,12 +105,21 @@ export default function Login() {
                 <Label htmlFor="password">Senha</Label>
                 <Input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required placeholder="••••••••" />
               </div>
+              <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => { setTab('forgot'); setError(''); }}
+                  className="text-sm font-medium text-primary hover:underline"
+                >
+                  Esqueceu a senha?
+                </button>
+              </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Entrando...' : 'Entrar'}
               </Button>
             </form>
-          ) : (
+          ) : tab === 'signup' ? (
             <form onSubmit={handleSignUp} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Nome completo</Label>
@@ -109,6 +136,23 @@ export default function Login() {
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? 'Criando conta...' : 'Criar Conta'}
+              </Button>
+            </form>
+          ) : (
+            <form onSubmit={handleForgotPassword} className="space-y-4">
+              <div className="text-center mb-4 text-sm text-muted-foreground">
+                Informe seu email e enviaremos um link para redefinir sua senha.
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="forgot-email">Email</Label>
+                <Input id="forgot-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="seu@email.com" />
+              </div>
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" disabled={isLoading}>
+                {isLoading ? 'Enviando...' : 'Enviar email de recuperação'}
+              </Button>
+              <Button type="button" variant="ghost" className="w-full" onClick={() => { setTab('login'); setError(''); }}>
+                Voltar para o Login
               </Button>
             </form>
           )}

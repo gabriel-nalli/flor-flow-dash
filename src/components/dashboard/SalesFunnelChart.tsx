@@ -65,9 +65,9 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
   const [selectedSeller, setSelectedSeller] = useState('all');
 
   const { data: allProfiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles_dash'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      const { data } = await supabase.from('profiles_dash').select('id, full_name, role');
       return data || [];
     },
     enabled: isAdmin,

@@ -30,9 +30,9 @@ export default function Leads() {
   });
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles_dash'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('id, full_name, role');
+      const { data } = await supabase.from('profiles_dash').select('id, full_name, role');
       return data || [];
     },
   });
@@ -142,11 +142,10 @@ export default function Leads() {
           <button
             type="button"
             onClick={() => setActiveTab('meus')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
-              activeTab === 'meus'
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'meus'
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/70'
-            }`}
+              }`}
           >
             {isAdmin ? 'Leads Coletados' : 'Meus Leads'}
             {activeTab === 'meus' && (
@@ -156,11 +155,10 @@ export default function Leads() {
           <button
             type="button"
             onClick={() => setActiveTab('webinar')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${
-              activeTab === 'webinar'
+            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/70'
-            }`}
+              }`}
           >
             Leads Webinar
             {activeTab === 'webinar' && (

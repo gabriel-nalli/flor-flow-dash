@@ -59,9 +59,9 @@ export default function Dashboard() {
   });
 
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles_dash'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*');
+      const { data } = await supabase.from('profiles_dash').select('*');
       return data || [];
     },
   });

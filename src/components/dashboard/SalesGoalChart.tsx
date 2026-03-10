@@ -108,9 +108,9 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
 
   // Busca os perfis REAIS do banco (IDs corretos para cruzar com assigned_to dos leads)
   const { data: profiles = [] } = useQuery({
-    queryKey: ['profiles'],
+    queryKey: ['profiles_dash'],
     queryFn: async () => {
-      const { data } = await supabase.from('profiles').select('*');
+      const { data } = await supabase.from('profiles_dash').select('*');
       return data || [];
     },
   });
