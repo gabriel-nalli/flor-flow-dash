@@ -6,12 +6,14 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, Plus } from 'lucide-react';
 import { AliciaWebinarLeadsTab } from '@/components/leads-alicia/AliciaWebinarLeadsTab';
 import { AliciaMyLeadsTab } from '@/components/leads-alicia/AliciaMyLeadsTab';
+import { AliciaNewLeadDialog } from '@/components/leads-alicia/AliciaNewLeadDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
 export default function LeadsAlicia() {
   const { selectedProfile, isAdmin } = useProfileSelector();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('meus');
+  const [newLeadOpen, setNewLeadOpen] = useState(false);
 
   const { data: allLeads = [], isLoading } = useQuery({
     queryKey: ['leads_alicia'],
@@ -91,6 +93,14 @@ export default function LeadsAlicia() {
             </span>
           </div>
         </div>
+        <button
+            type="button"
+            onClick={() => setNewLeadOpen(true)}
+            className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-4 py-2 rounded-lg transition-all text-sm font-bold"
+          >
+            <Plus size={14} />
+            Nuevo Lead
+          </button>
       </div>
 
       <div className="bg-card rounded-2xl overflow-hidden">
@@ -132,6 +142,8 @@ export default function LeadsAlicia() {
           )}
         </div>
       </div>
+
+      <AliciaNewLeadDialog open={newLeadOpen} onOpenChange={setNewLeadOpen} />
     </div>
   );
 }

@@ -216,6 +216,22 @@ const translations = {
   'Selecionar nova responsável': { pt: 'Selecionar nova responsável', es: 'Seleccionar nueva responsable' },
   'Confirmar Troca': { pt: 'Confirmar Troca', es: 'Confirmar Cambio' },
 
+  // ─── AliciaNewLeadDialog ────────────────────────────────────────────
+  'Novo Lead — Alicia 🇪🇸': { pt: 'Novo Lead — Alicia 🇪🇸', es: 'Nuevo Lead — Alicia 🇪🇸' },
+  'Tempo de Experiência': { pt: 'Tempo de Experiência', es: 'Tiempo de Experiencia' },
+  'Qtd. Funcionários': { pt: 'Qtd. Funcionários', es: 'Cant. Empleados' },
+  'Faturamento Mensal': { pt: 'Faturamento Mensal', es: 'Facturación Mensual' },
+  'Plano Concreto': { pt: 'Plano Concreto', es: 'Plan Concreto' },
+  'Tempo para Resultados': { pt: 'Tempo para Resultados', es: 'Tiempo para Resultados' },
+  'Mostrar campos opcionais': { pt: 'Mostrar campos opcionais', es: 'Mostrar campos opcionales' },
+  'Ex: 2 anos': { pt: 'Ex: 2 anos', es: 'Ej: 2 años' },
+  'Ex: 5 funcionários': { pt: 'Ex: 5 funcionários', es: 'Ej: 5 empleados' },
+  'Ex: Escalar para 10k/mês': { pt: 'Ex: Escalar para 10k/mês', es: 'Ej: Escalar a 10k/mes' },
+  'Ex: Conseguir clientes': { pt: 'Ex: Conseguir clientes', es: 'Ej: Conseguir clientes' },
+  'Ex: 3 meses': { pt: 'Ex: 3 meses', es: 'Ej: 3 meses' },
+  'Lead adicionado com sucesso!': { pt: 'Lead adicionado com sucesso! ✅', es: 'Lead agregado con éxito! ✅' },
+  'Erro ao adicionar lead': { pt: 'Erro ao adicionar lead', es: 'Error al agregar lead' },
+
   // ─── NewLeadDialog ─────────────────────────────────────────────────
   'Nome *': { pt: 'Nome *', es: 'Nombre *' },
   'Nome completo': { pt: 'Nome completo', es: 'Nombre completo' },
