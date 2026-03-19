@@ -5,9 +5,11 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useProfileSelector, ProfileSelectorProvider } from "@/contexts/ProfileSelectorContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import AppLayout from "@/components/AppLayout";
 import Dashboard from "@/pages/Dashboard";
 import Leads from "@/pages/Leads";
+import LeadsAlicia from "@/pages/LeadsAlicia";
 import Routine from "@/pages/Routine";
 import SalesGoal from "@/pages/SalesGoal";
 import WebinarFunnel from "@/pages/WebinarFunnel";
@@ -36,19 +38,22 @@ function ProtectedRoutes() {
   if (!user) return <Navigate to="/login" />;
 
   return (
-    <ProfileSelectorProvider>
-      <Routes>
-        <Route element={<AppLayout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/leads" element={<Leads />} />
-          <Route path="/routine" element={<Routine />} />
-          <Route path="/meta" element={<AdminRoute><SalesGoal /></AdminRoute>} />
-          <Route path="/funil-webinar" element={<AdminRoute><WebinarFunnel /></AdminRoute>} />
-          <Route path="/comissoes" element={<AdminRoute><Commissions /></AdminRoute>} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </ProfileSelectorProvider>
+    <LanguageProvider>
+      <ProfileSelectorProvider>
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/leads" element={<Leads />} />
+            <Route path="/leads-alicia" element={<LeadsAlicia />} />
+            <Route path="/routine" element={<Routine />} />
+            <Route path="/meta" element={<AdminRoute><SalesGoal /></AdminRoute>} />
+            <Route path="/funil-webinar" element={<AdminRoute><WebinarFunnel /></AdminRoute>} />
+            <Route path="/comissoes" element={<AdminRoute><Commissions /></AdminRoute>} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </ProfileSelectorProvider>
+    </LanguageProvider>
   );
 }
 
