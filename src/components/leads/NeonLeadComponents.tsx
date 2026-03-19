@@ -1,5 +1,6 @@
 import { Search, Instagram, Tag, DollarSign, Calendar, MoreHorizontal, MessageCircle, CheckCircle, ChevronDown } from 'lucide-react';
 import { STATUS_CONFIG } from '@/lib/constants';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 // Neon Input
 export function NeonInput({ icon: Icon, placeholder, value, onChange, type = "text", className = "" }: {
@@ -31,6 +32,7 @@ export function NeonSelectWrapper({ children, className = "" }: { children: Reac
 
 // Neon Status Badge
 export function NeonStatusBadge({ status }: { status: string | null }) {
+  const { t } = useLanguage();
   const config = STATUS_CONFIG[status || ''];
   if (!config) return <span className="text-xs text-muted-foreground">{status || '—'}</span>;
 
@@ -52,7 +54,7 @@ export function NeonStatusBadge({ status }: { status: string | null }) {
 
   return (
     <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${neonStyles[status || ''] || 'text-muted-foreground'}`}>
-      {config.label}
+      {t(config.label as any)}
     </span>
   );
 }
@@ -86,18 +88,20 @@ export function NeonTableWrapper({ children }: { children: React.ReactNode }) {
 
 // Pagination
 export function NeonPagination({ showing, total }: { showing: number; total: number }) {
+  const { t } = useLanguage();
   return (
     <div className="flex justify-between items-center px-6 py-4">
       <span className="text-muted-foreground text-xs">
-        Mostrando {showing} de {total}
+        {t('Mostrando')} {showing} {t('de')} {total}
       </span>
       <div className="flex items-center gap-1">
-        <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">Anterior</button>
+        <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">{t('Anterior')}</button>
         <button className="px-3 py-1.5 text-xs bg-muted text-foreground rounded-lg font-semibold">1</button>
         <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">2</button>
         <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">3</button>
-        <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">Próximo</button>
+        <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">{t('Próximo')}</button>
       </div>
     </div>
   );
 }
+

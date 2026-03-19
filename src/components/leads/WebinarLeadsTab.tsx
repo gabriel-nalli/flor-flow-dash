@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
@@ -12,6 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WebinarLeadsTabProps {
   leads: any[];
@@ -21,8 +22,9 @@ interface WebinarLeadsTabProps {
 }
 
 export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }: WebinarLeadsTabProps) {
-  const { selectedProfile, isAdmin } = useProfileSelector();
+  const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const [nameFilter, setNameFilter] = useState('');
   const [instaFilter, setInstaFilter] = useState('');
@@ -33,7 +35,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const [revenueFilter, setRevenueFilter] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
-  const resolvedProfileMap = profileMap || Object.fromEntries(TEAM_MEMBERS.map(p => [p.id, p.full_name]));
+  const resolvedProfileMap = profileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
   const uniqueTags = Array.from(new Set(allLeads.map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse();
 
   const parseFaturamento = (fat: string | null | undefined): string => {
@@ -114,16 +116,16 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
     <div>
       <div className="px-6 py-5">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-          <NeonInput icon={Search} placeholder="Buscar nome..." value={nameFilter} onChange={e => setNameFilter(e.target.value)} />
-          <NeonInput icon={Instagram} placeholder="@usuario" value={instaFilter} onChange={e => setInstaFilter(e.target.value)} />
+          <NeonInput icon={Search} placeholder={t('Buscar nome...')} value={nameFilter} onChange={e => setNameFilter(e.target.value)} />
+          <NeonInput icon={Instagram} placeholder={t('@usuario')} value={instaFilter} onChange={e => setInstaFilter(e.target.value)} />
           <NeonSelectWrapper>
             <Select value={revenueFilter} onValueChange={setRevenueFilter}>
               <SelectTrigger className="h-10">
                 <DollarSign size={14} className="mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Faturamento" />
+                <SelectValue placeholder={t('Faturamento')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">{t('Todos')}</SelectItem>
                 <SelectItem value="1k-2k">R$ 1k — 2k</SelectItem>
                 <SelectItem value="3k-6k">R$ 3k — 6k</SelectItem>
                 <SelectItem value="6k-10k">R$ 6k — 10k</SelectItem>
@@ -135,10 +137,10 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             <Select value={tagFilter} onValueChange={setTagFilter}>
               <SelectTrigger className="h-10">
                 <Tag size={14} className="mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Webinário" />
+                <SelectValue placeholder={t('Webinário')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">{t('Todos')}</SelectItem>
                 {uniqueTags.map(tag => {
                   const isIso = /^\d{4}-\d{2}-\d{2}$/.test(tag);
                   const label = isIso ? `Webinar · ${tag.slice(8, 10)}/${tag.slice(5, 7)}` : tag;
@@ -151,7 +153,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             <PopoverTrigger asChild>
               <button className="flex items-center gap-2 bg-secondary rounded-xl px-3 h-10 text-sm text-muted-foreground hover:text-foreground transition-colors">
                 <CalendarIcon2 size={14} />
-                {dateFilter ? format(dateFilter, "dd/MM/yyyy") : "Data"}
+                {dateFilter ? format(dateFilter, "dd/MM/yyyy") : t('Data')}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
@@ -164,11 +166,11 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${mqlOnly ? 'bg-primary border-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]' : 'border-muted-foreground/30 bg-muted/50'}`}>
               {mqlOnly && <CheckCircle size={10} className="text-primary-foreground" />}
             </div>
-            Somente MQL
+            {t('Somente MQL')}
           </label>
           {hasFilters && (
             <button onClick={clearFilters} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <X size={12} /> Limpar filtros
+              <X size={12} /> {t('Limpar filtros')}
             </button>
           )}
         </div>
@@ -177,7 +179,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
       {filtered.some(l => l.status === 'novo') && (
         <div className="mx-6 mt-4 flex items-center gap-2 px-4 py-3 bg-destructive/10 text-destructive rounded-xl text-sm font-medium">
           <AlertTriangle className="w-4 h-4" />
-          {filtered.filter(l => l.status === 'novo').length} leads novos aguardando coleta
+          {filtered.filter(l => l.status === 'novo').length} {t('leads novos aguardando coleta')}
         </div>
       )}
 
@@ -185,20 +187,20 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         <table className="w-full">
           <thead>
             <tr>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">Nome</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Insta</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Faturamento</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Nome')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Insta')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Faturamento')}</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Tag</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Data</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Status</th>
-              <th className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">Ações</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Data')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Status')}</th>
+              <th className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Ações')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">Carregando...</td></tr>
+              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">Nenhum lead disponível</td></tr>
+              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</td></tr>
             ) : filtered.map(lead => (
               <React.Fragment key={lead.id}>
                 <tr className="hover:bg-muted/30 transition-colors group">
@@ -248,12 +250,12 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                       <button
                         onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                         className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                        title="Mais informações"
+                        title={t('Mais informações')}
                       >
                         {expandedId === lead.id ? <ChevronUp size={16} className="text-primary" /> : <ChevronDown size={16} className="text-muted-foreground" />}
                       </button>
                       {lead.whatsapp && (
-                        <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title="Enviar WhatsApp">
+                        <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors" title={t('Enviar WhatsApp')}>
                           <MessageCircle size={16} className="text-muted-foreground hover:text-green-500" />
                         </button>
                       )}
@@ -265,7 +267,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                           className="gap-1 rounded-lg text-xs"
                         >
                           <CheckCircle size={14} />
-                          {collectingId === lead.id ? 'Coletando...' : 'Coletar'}
+                          {collectingId === lead.id ? t('Coletando...') : t('Coletar')}
                         </Button>
                       )}
                     </div>
@@ -276,19 +278,19 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     <td colSpan={7} className="px-6 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Profissão</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Profissão')}</span>
                           <span className="text-foreground">{lead.profissao || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Maior Dificuldade</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Maior Dificuldade')}</span>
                           <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Renda Familiar</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Renda Familiar')}</span>
                           <span className="text-foreground">{lead.renda_familiar || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Quem Investe</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
                           <span className="text-foreground">{lead.quem_investe || '—'}</span>
                         </div>
                       </div>

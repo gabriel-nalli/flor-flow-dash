@@ -3,12 +3,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { Plus, User, Instagram, MessageCircle, Mail, DollarSign, Tag, Briefcase, AlertCircle, Wallet, Heart, ChevronDown, ChevronUp, CalendarDays } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface NewLeadDialogProps {
   open: boolean;
@@ -23,9 +24,10 @@ const ORIGIN_OPTIONS = [
 ];
 
 export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
-  const { isAdmin } = useProfileSelector();
+  const { isAdmin, teamMembers } = useProfileSelector();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
 
@@ -41,8 +43,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
   const [rendaFamiliar, setRendaFamiliar] = useState('');
   const [quemInveste, setQuemInveste] = useState('');
   const [webinarDate, setWebinarDate] = useState('');
-
-  const sellers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
+  const sellers = teamMembers.filter(p => p.role !== 'ADMIN');
 
   const resetForm = () => {
     setNome(''); setWhatsapp(''); setInstagram(''); setEmail('');
@@ -109,24 +110,24 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
         <DialogHeader>
           <DialogTitle className="text-lg font-bold flex items-center gap-2">
             <Plus size={18} className="text-primary" />
-            Novo Lead
+            {t('Novo Lead')}
           </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 pt-2">
           {/* Nome * */}
           <div className="space-y-1.5">
-            <label className="text-xs text-muted-foreground font-medium">Nome *</label>
+            <label className="text-xs text-muted-foreground font-medium">{t('Nome *')}</label>
             <div className="relative">
               <User size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Nome completo" value={nome} onChange={e => setNome(e.target.value)} className="pl-9 bg-secondary border-none" />
+              <Input placeholder={t('Nome completo')} value={nome} onChange={e => setNome(e.target.value)} className="pl-9 bg-secondary border-none" />
             </div>
           </div>
 
           {/* WhatsApp * + Instagram */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">WhatsApp *</label>
+              <label className="text-xs text-muted-foreground font-medium">{t('WhatsApp *')}</label>
               <div className="relative">
                 <MessageCircle size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input placeholder="5511999990000" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} className="pl-9 bg-secondary border-none" />
@@ -136,7 +137,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
               <label className="text-xs text-muted-foreground font-medium">Instagram</label>
               <div className="relative">
                 <Instagram size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="@usuario" value={instagram} onChange={e => setInstagram(e.target.value)} className="pl-9 bg-secondary border-none" />
+                <Input placeholder={t('@usuario')} value={instagram} onChange={e => setInstagram(e.target.value)} className="pl-9 bg-secondary border-none" />
               </div>
             </div>
           </div>
@@ -144,14 +145,14 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
           {/* Faturamento + Origem */}
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Faturamento</label>
+              <label className="text-xs text-muted-foreground font-medium">{t('Faturamento')}</label>
               <div className="relative">
                 <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input placeholder="Ex: 5000" value={faturamento} onChange={e => setFaturamento(e.target.value)} className="pl-9 bg-secondary border-none" />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Origem</label>
+              <label className="text-xs text-muted-foreground font-medium">{t('Origem')}</label>
               <Select value={origem} onValueChange={(v) => { setOrigem(v); if (v !== 'webinar') setWebinarDate(''); }}>
                 <SelectTrigger className="bg-secondary border-none h-10">
                   <Tag size={14} className="mr-2 text-muted-foreground" />
@@ -171,8 +172,8 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
                 <CalendarDays size={13} className="text-primary" />
-                Data do Webinário
-                <span className="text-[10px] opacity-60 ml-1">(opcional)</span>
+                {t('Data do Webinário')}
+                <span className="text-[10px] opacity-60 ml-1">{t('(opcional)')}</span>
               </label>
               <div className="relative">
                 <CalendarDays size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
@@ -184,7 +185,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
                 />
               </div>
               <p className="text-[11px] text-muted-foreground">
-                📅 Informe a data do webinário para filtrar leads por evento
+                📅 {t('Informe a data do webinário para filtrar leads por evento')}
               </p>
             </div>
           )}
@@ -192,13 +193,13 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
           {/* Responsável — somente Admin */}
           {isAdmin && (
             <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Atribuir a vendedora (opcional)</label>
+              <label className="text-xs text-muted-foreground font-medium">{t('Atribuir a vendedora (opcional)')}</label>
               <Select value={assignedTo} onValueChange={setAssignedTo}>
                 <SelectTrigger className="bg-secondary border-none h-10">
-                  <SelectValue placeholder="Sem responsável" />
+                  <SelectValue placeholder={t('Sem responsável')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Sem responsável (pool)</SelectItem>
+                  <SelectItem value="none">{t('Sem responsável (pool)')}</SelectItem>
                   {sellers.map(s => (
                     <SelectItem key={s.id} value={s.id}>{s.full_name} ({s.role})</SelectItem>
                   ))}
@@ -214,7 +215,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors w-full justify-center py-1"
           >
             {showOptional ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-            {showOptional ? 'Ocultar campos opcionais' : 'Mostrar campos opcionais (email, profissão, etc.)'}
+            {showOptional ? t('Ocultar campos opcionais') : t('Mostrar campos opcionais (email, profissão, etc.)')}
           </button>
 
           {showOptional && (
@@ -231,14 +232,14 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
               {/* Profissão + Renda Familiar */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground font-medium">Profissão</label>
+                  <label className="text-xs text-muted-foreground font-medium">{t('Profissão')}</label>
                   <div className="relative">
                     <Briefcase size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="Ex: Designer" value={profissao} onChange={e => setProfissao(e.target.value)} className="pl-9 bg-secondary border-none" />
                   </div>
                 </div>
                 <div className="space-y-1.5">
-                  <label className="text-xs text-muted-foreground font-medium">Renda Familiar</label>
+                  <label className="text-xs text-muted-foreground font-medium">{t('Renda Familiar')}</label>
                   <div className="relative">
                     <Wallet size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="Ex: R$ 5.000" value={rendaFamiliar} onChange={e => setRendaFamiliar(e.target.value)} className="pl-9 bg-secondary border-none" />
@@ -248,7 +249,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
 
               {/* Maior Dificuldade */}
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground font-medium">Maior Dificuldade</label>
+                <label className="text-xs text-muted-foreground font-medium">{t('Maior Dificuldade')}</label>
                 <div className="relative">
                   <AlertCircle size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input placeholder="Ex: Conseguir clientes" value={maiorDificuldade} onChange={e => setMaiorDificuldade(e.target.value)} className="pl-9 bg-secondary border-none" />
@@ -257,7 +258,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
 
               {/* Quem Investe */}
               <div className="space-y-1.5">
-                <label className="text-xs text-muted-foreground font-medium">Quem Investe na Sua Carreira?</label>
+                <label className="text-xs text-muted-foreground font-medium">{t('Quem Investe na Sua Carreira?')}</label>
                 <div className="relative">
                   <Heart size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                   <Input placeholder="Ex: Eu mesma, Família..." value={quemInveste} onChange={e => setQuemInveste(e.target.value)} className="pl-9 bg-secondary border-none" />
@@ -273,7 +274,7 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
             className={`w-full gap-2 mt-2 transition-opacity ${!canSubmit ? 'opacity-60' : ''}`}
           >
             <Plus size={16} />
-            {saving ? 'Salvando...' : 'Adicionar Lead'}
+            {saving ? t('Carregando...') : t('Adicionar Lead')}
           </Button>
         </div>
       </DialogContent>

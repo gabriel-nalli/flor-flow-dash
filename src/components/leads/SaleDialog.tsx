@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Upload, FileText, X, ImageIcon, Split } from 'lucide-react';
 import { toast } from 'sonner';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SaleDialogProps {
   open: boolean;
@@ -20,6 +21,7 @@ const PAYMENT_METHODS = [
 ];
 
 export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDialogProps) {
+  const { t } = useLanguage();
   const [saleValue, setSaleValue] = useState('');
   const [cashValue, setCashValue] = useState('');
   const [comprovanteFile, setComprovanteFile] = useState<File | null>(null);
@@ -107,14 +109,14 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Registrar Venda 🎉</DialogTitle>
+          <DialogTitle>{t('Registrar Venda 🎉')}</DialogTitle>
           <p className="text-sm text-muted-foreground">Lead: <span className="font-medium text-foreground">{leadName}</span></p>
         </DialogHeader>
 
         <div className="space-y-4 py-2">
           {/* Valor Bruto */}
           <div className="space-y-2">
-            <Label htmlFor="sale-value">Valor da Venda (Bruto)</Label>
+            <Label htmlFor="sale-value">{t('Valor da Venda (Bruto)')}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
               <Input
@@ -129,7 +131,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
 
           {/* Cash-in */}
           <div className="space-y-2">
-            <Label htmlFor="cash-value">Valor em Cash-in (Líquido recebido)</Label>
+            <Label htmlFor="cash-value">{t('Valor em Cash-in (Líquido recebido)')}</Label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
               <Input
@@ -144,7 +146,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
 
           {/* Método de Pagamento */}
           <div className="space-y-2">
-            <Label>Método de Pagamento</Label>
+            <Label>{t('Método de Pagamento')}</Label>
             <div className="flex flex-wrap gap-3">
               {PAYMENT_METHODS.map(pm => {
                 const selected = paymentMethod === pm.id;
@@ -180,11 +182,11 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
               <div className="mt-3 p-3 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
                 <p className="text-xs text-primary font-semibold uppercase tracking-wide flex items-center gap-1.5">
                   <Split className="w-3 h-3" />
-                  Detalhes HUBLA + Boleto
+                  {t('Detalhes HUBLA + Boleto')}
                 </p>
                 {/* Valor entrada Hubla */}
                 <div className="space-y-1">
-                  <Label htmlFor="hubla-entrada" className="text-xs">Valor da entrada (HUBLA à vista)</Label>
+                  <Label htmlFor="hubla-entrada" className="text-xs">{t('Valor da entrada (HUBLA à vista)')}</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
                     <Input
@@ -198,7 +200,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                 </div>
                 {/* Valor parcelado Boleto */}
                 <div className="space-y-1">
-                  <Label htmlFor="boleto-parcelado" className="text-xs">Valor parcelado no Boleto</Label>
+                  <Label htmlFor="boleto-parcelado" className="text-xs">{t('Valor parcelado no Boleto')}</Label>
                   <div className="relative">
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
                     <Input
@@ -216,7 +218,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
 
           {/* Comprovante */}
           <div className="space-y-2">
-            <Label>Comprovante de Pagamento</Label>
+            <Label>{t('Comprovante de Pagamento')}</Label>
 
             {!comprovanteFile ? (
               <div
@@ -231,7 +233,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                 onDrop={handleDrop}
               >
                 <Upload className="w-7 h-7 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">Clique ou arraste o arquivo aqui</p>
+                <p className="text-sm font-medium text-foreground">{t('Clique ou arraste o arquivo aqui')}</p>
                 <p className="text-xs text-muted-foreground">JPG, PNG, WEBP ou PDF • Máx. 10MB</p>
                 <input
                   ref={fileInputRef}
@@ -266,7 +268,7 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                 <div className="px-3 py-2 border-t border-border flex justify-end">
                   <button onClick={handleRemove} className="flex items-center gap-1.5 text-xs text-destructive hover:text-destructive/80 transition-colors">
                     <X className="w-3.5 h-3.5" />
-                    Remover arquivo
+                    {t('Remover arquivo')}
                   </button>
                 </div>
               </div>
@@ -275,8 +277,8 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleConfirm} disabled={!saleValue}>Confirmar Venda</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('Cancelar')}</Button>
+          <Button onClick={handleConfirm} disabled={!saleValue}>{t('Confirmar Venda')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

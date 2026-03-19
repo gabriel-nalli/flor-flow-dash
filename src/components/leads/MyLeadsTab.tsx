@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { UrgentLeadsDialog } from '@/components/leads/UrgentLeadsDialog';
 import { LostReasonDialog } from '@/components/leads/LostReasonDialog';
 import { supabase } from '@/integrations/supabase/client';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -16,6 +16,7 @@ import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, Tre
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO } from 'date-fns';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface MyLeadsTabProps {
   leads: any[];
@@ -26,8 +27,9 @@ interface MyLeadsTabProps {
 }
 
 export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], profileMap: externalProfileMap }: MyLeadsTabProps) {
-  const { selectedProfile, isAdmin } = useProfileSelector();
+  const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
+  const { t } = useLanguage();
 
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
@@ -45,7 +47,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   const [reassignLead, setReassignLead] = useState<any>(null);
   const [reassignTo, setReassignTo] = useState('');
 
-  const profileMap = externalProfileMap || Object.fromEntries(TEAM_MEMBERS.map(p => [p.id, p.full_name]));
+  const profileMap = externalProfileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
   // Build sellers list from profileMap (real DB profiles) excluding admins
   const sellers = Object.entries(profileMap)
     .filter(([id]) => {
@@ -211,29 +213,29 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
     <div>
       <div className="px-6 py-5">
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
-          <NeonInput icon={Search} placeholder="Buscar nome, WhatsApp..." value={search} onChange={e => setSearch(e.target.value)} />
+          <NeonInput icon={Search} placeholder={t('Buscar nome, WhatsApp...')} value={search} onChange={e => setSearch(e.target.value)} />
           <NeonSelectWrapper>
             <Select value={stageFilter} onValueChange={setStageFilter}>
-              <SelectTrigger className="h-10"><SelectValue placeholder="Etapa" /></SelectTrigger>
+              <SelectTrigger className="h-10"><SelectValue placeholder={t('Etapa')} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as etapas</SelectItem>
-                <SelectItem value="whatsapp_sent">WhatsApp enviado</SelectItem>
-                <SelectItem value="no_response">Não respondeu</SelectItem>
-                <SelectItem value="scheduled_meeting">Agendado</SelectItem>
+                <SelectItem value="all">{t('Todas as etapas')}</SelectItem>
+                <SelectItem value="whatsapp_sent">{t('WhatsApp enviado')}</SelectItem>
+                <SelectItem value="no_response">{t('Não respondeu')}</SelectItem>
+                <SelectItem value="scheduled_meeting">{t('Agendado')}</SelectItem>
                 <SelectItem value="no_show_marked">No-show</SelectItem>
-                <SelectItem value="meeting_done">Reunião realizada</SelectItem>
-                <SelectItem value="followup_done">Follow-up feito</SelectItem>
-                <SelectItem value="sale_won_call">Venda na Call</SelectItem>
-                <SelectItem value="sale_won_followup">Venda no Follow-up</SelectItem>
+                <SelectItem value="meeting_done">{t('Reunião realizada')}</SelectItem>
+                <SelectItem value="followup_done">{t('Follow-up feito')}</SelectItem>
+                <SelectItem value="sale_won_call">{t('Venda na Call')}</SelectItem>
+                <SelectItem value="sale_won_followup">{t('Venda no Follow-up')}</SelectItem>
               </SelectContent>
             </Select>
           </NeonSelectWrapper>
           {isAdmin && (
             <NeonSelectWrapper>
               <Select value={sellerFilter} onValueChange={setSellerFilter}>
-                <SelectTrigger className="h-10"><SelectValue placeholder="Vendedora" /></SelectTrigger>
+                <SelectTrigger className="h-10"><SelectValue placeholder={t('Vendedora')} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todas as vendedoras</SelectItem>
+                  <SelectItem value="all">{t('Todas as vendedoras')}</SelectItem>
                   {sellers.map(p => <SelectItem key={p.id} value={p.id}>{p.full_name}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -243,10 +245,10 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
             <Select value={revenueFilter} onValueChange={setRevenueFilter}>
               <SelectTrigger className="h-10">
                 <DollarSign size={14} className="mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Faturamento" />
+                <SelectValue placeholder={t('Faturamento')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="all">{t('Todos')}</SelectItem>
                 <SelectItem value="1k-2k">R$ 1k — 2k</SelectItem>
                 <SelectItem value="3k-6k">R$ 3k — 6k</SelectItem>
                 <SelectItem value="6k-10k">R$ 6k — 10k</SelectItem>
@@ -258,10 +260,10 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
             <Select value={tagFilter} onValueChange={setTagFilter}>
               <SelectTrigger className="h-10">
                 <Tag size={14} className="mr-2 text-muted-foreground" />
-                <SelectValue placeholder="Webinários" />
+                <SelectValue placeholder={t('Webinários')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os webinários</SelectItem>
+                <SelectItem value="all">{t('Todos os webinários')}</SelectItem>
                 {uniqueTags.map(tag => {
                   const isIso = /^\d{4}-\d{2}-\d{2}$/.test(tag);
                   const label = isIso ? `Webinar · ${tag.slice(8, 10)}/${tag.slice(5, 7)}` : tag;
@@ -274,7 +276,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
             <div className={`w-4 h-4 rounded border flex items-center justify-center transition-all ${mqlOnly ? 'bg-primary border-primary shadow-[0_0_8px_hsl(var(--primary)/0.4)]' : 'border-muted-foreground/30 bg-muted/50'}`}>
               {mqlOnly && <CheckCircle size={10} className="text-primary-foreground" />}
             </div>
-            Somente MQL
+            {t('Somente MQL')}
           </label>
         </div>
       </div>
@@ -286,7 +288,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
               onClick={() => setShowUrgentDialog(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-destructive/10 text-destructive rounded-xl text-sm font-medium hover:bg-destructive/20 transition-colors cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" /> {urgentLeads.length} leads URGENTES
+              <AlertTriangle className="w-4 h-4" /> {urgentLeads.length} {t('leads URGENTES')}
             </button>
           )}
           {overdueFollowups.length > 0 && (
@@ -294,7 +296,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
               onClick={() => setShowOverdueDialog(true)}
               className="flex items-center gap-2 px-4 py-2.5 bg-warning/10 text-warning rounded-xl text-sm font-medium hover:bg-warning/20 transition-colors cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" /> {overdueFollowups.length} follow-ups atrasados
+              <AlertTriangle className="w-4 h-4" /> {overdueFollowups.length} {t('follow-ups atrasados')}
             </button>
           )}
         </div>
@@ -320,21 +322,21 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
         <table className="w-full">
           <thead>
             <tr className="border-b border-transparent">
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">Nome</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Insta</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Faturamento</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Nome')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Insta')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Faturamento')}</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Tag</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Status</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Etapas</th>
-              {isAdmin && <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Responsável</th>}
-              <th className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">Ações</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Status')}</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Etapas')}</th>
+              {isAdmin && <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Responsável')}</th>}
+              <th className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Ações')}</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">Carregando...</td></tr>
+              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">Nenhum lead encontrado</td></tr>
+              <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">{t('Nenhum lead encontrado')}</td></tr>
             ) : filtered.map(lead => (
               <React.Fragment key={lead.id}>
                 <tr className={`hover:bg-muted/30 transition-colors group ${lead.status === 'novo' && lead.created_at && isToday(parseISO(lead.created_at)) ? 'bg-destructive/[0.03]' : ''}`}>
@@ -406,39 +408,39 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                         <DropdownMenuContent align="end">
                           {lead.status === 'novo' && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'first_contact')}>
-                              <MessageCircle className="w-4 h-4 mr-2" /> Marcar 1º Contato Feito
+                              <MessageCircle className="w-4 h-4 mr-2" /> {t('Marcar 1º Contato Feito')}
                             </DropdownMenuItem>
                           )}
                           {['novo', 'contato_1_feito', 'nao_respondeu_d0'].includes(lead.status) && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, lead.status === 'nao_respondeu_d0' ? 'nao_respondeu_d1' : 'nao_respondeu_d0', 'no_response')}>
-                              <XCircle className="w-4 h-4 mr-2" /> Não Respondeu
+                              <XCircle className="w-4 h-4 mr-2" /> {t('Não Respondeu')}
                             </DropdownMenuItem>
                           )}
                           {['novo', 'contato_1_feito', 'nao_respondeu_d0', 'nao_respondeu_d1', 'no_show'].includes(lead.status) && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'agendado', 'scheduled_meeting')}>
-                              <Calendar className="w-4 h-4 mr-2" /> Agendar Reunião
+                              <Calendar className="w-4 h-4 mr-2" /> {t('Agendar Reunião')}
                             </DropdownMenuItem>
                           )}
                           {lead.status === 'agendado' && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'no_show', 'no_show_marked')}>
-                              <XCircle className="w-4 h-4 mr-2" /> Marcar No-show
+                              <XCircle className="w-4 h-4 mr-2" /> {t('Marcar No-show')}
                             </DropdownMenuItem>
                           )}
                           {lead.status === 'agendado' && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'reuniao_realizada', 'meeting_done')}>
-                              <Phone className="w-4 h-4 mr-2" /> Reunião Realizada
+                              <Phone className="w-4 h-4 mr-2" /> {t('Reunião realizada')}
                             </DropdownMenuItem>
                           )}
                           {['reuniao_realizada', 'proposta_enviada', 'aguardando_decisao'].includes(lead.status) && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'follow_up', 'followup_done')}>
-                              <CheckCircle className="w-4 h-4 mr-2" /> Follow-up Feito
+                              <CheckCircle className="w-4 h-4 mr-2" /> {t('Follow-up Feito')}
                             </DropdownMenuItem>
                           )}
                           {lead.status === 'reuniao_realizada' && (
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => openSaleDialog(lead, 'won_call')}>
-                                <TrendingUp className="w-4 h-4 mr-2" /> Venda na Call
+                                <TrendingUp className="w-4 h-4 mr-2" /> {t('Venda na Call')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -446,7 +448,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => openSaleDialog(lead, 'won_followup')}>
-                                <TrendingUp className="w-4 h-4 mr-2" /> Venda no Follow-up
+                                <TrendingUp className="w-4 h-4 mr-2" /> {t('Venda no Follow-up')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -454,7 +456,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                             <>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => { setLostDialogLead(lead); setLostDialogOpen(true); }} className="text-destructive">
-                                <XCircle className="w-4 h-4 mr-2" /> Lead Perdido
+                                <XCircle className="w-4 h-4 mr-2" /> {t('Lead Perdido')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -466,7 +468,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                                 await logAction(lead.id, 'uncollected');
                                 toast.success('Lead descoletado — voltou para Leads Webinar');
                               }} className="text-warning">
-                                <Undo2 className="w-4 h-4 mr-2" /> Descoletar Lead
+                                <Undo2 className="w-4 h-4 mr-2" /> {t('Descoletar Lead')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -478,7 +480,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                                 setReassignTo(lead.assigned_to || '');
                                 setReassignDialogOpen(true);
                               }}>
-                                <UserCheck className="w-4 h-4 mr-2" /> Trocar Responsável
+                                <UserCheck className="w-4 h-4 mr-2" /> {t('Trocar Responsável')}
                               </DropdownMenuItem>
                             </>
                           )}
@@ -492,19 +494,19 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                     <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Profissão</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Profissão')}</span>
                           <span className="text-foreground">{lead.profissao || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Maior Dificuldade</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Maior Dificuldade')}</span>
                           <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Renda Familiar</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Renda Familiar')}</span>
                           <span className="text-foreground">{lead.renda_familiar || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">Quem Investe</span>
+                          <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
                           <span className="text-foreground">{lead.quem_investe || '—'}</span>
                         </div>
                       </div>
@@ -522,7 +524,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
       <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Trocar Responsável</DialogTitle>
+            <DialogTitle>{t('Trocar Responsável')}</DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-3">
             <p className="text-sm text-muted-foreground">
@@ -530,7 +532,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
             </p>
             <Select value={reassignTo} onValueChange={setReassignTo}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecionar nova responsável" />
+                <SelectValue placeholder={t('Selecionar nova responsável')} />
               </SelectTrigger>
               <SelectContent>
                 {vendedoras.map((p: any) => (
@@ -547,14 +549,14 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
               onClick={() => { setReassignDialogOpen(false); setReassignLead(null); setReassignTo(''); }}
               className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              Cancelar
+              {t('Cancelar')}
             </button>
             <button
               onClick={handleReassign}
               disabled={!reassignTo || reassignTo === reassignLead?.assigned_to}
               className="px-4 py-2 bg-foreground text-background text-sm font-bold rounded-lg hover:bg-foreground/90 transition-all disabled:opacity-40"
             >
-              Confirmar Troca
+              {t('Confirmar Troca')}
             </button>
           </DialogFooter>
         </DialogContent>

@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { supabase } from '@/integrations/supabase/client';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface FunnelChartProps {
   leads: any[];
@@ -63,6 +64,7 @@ function NeonStatCard({ label, value, subtext }: { label: string; value: string;
 
 export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) {
   const [selectedSeller, setSelectedSeller] = useState('all');
+  const { t } = useLanguage();
 
   const { data: allProfiles = [] } = useQuery({
     queryKey: ['profiles_dash'],
@@ -108,13 +110,13 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
   const totalVendas = stats.vendasCall + stats.vendasFollowup;
 
   const conversionCards = [
-    { label: 'WhatsApp Enviado', value: `${pct(stats.whatsappEnviado, stats.coletados)}%` },
-    { label: 'Agendamentos', value: `${pct(stats.agendamentos, stats.coletados)}%` },
-    { label: 'Reuniões Realiz.', value: `${pct(stats.reunioes, stats.agendamentos)}%` },
-    { label: 'No-show', value: `${pct(stats.noShows, stats.agendamentos)}%`, subtext: 'Negativo' },
-    { label: 'Follow-up', value: `${pct(stats.followUps, stats.reunioes)}%` },
-    { label: 'Vendas na Call', value: `${pct(stats.vendasCall, stats.reunioes)}%` },
-    { label: 'Vendas no Follow-up', value: `${pct(stats.vendasFollowup, stats.followUps)}%` },
+    { label: t('WhatsApp Enviado'), value: `${pct(stats.whatsappEnviado, stats.coletados)}%` },
+    { label: t('Agendamentos'), value: `${pct(stats.agendamentos, stats.coletados)}%` },
+    { label: t('Reuniões Realizadas'), value: `${pct(stats.reunioes, stats.agendamentos)}%` },
+    { label: t('No-show'), value: `${pct(stats.noShows, stats.agendamentos)}%`, subtext: 'Negativo' },
+    { label: t('Follow-up'), value: `${pct(stats.followUps, stats.reunioes)}%` },
+    { label: t('Vendas na Call'), value: `${pct(stats.vendasCall, stats.reunioes)}%` },
+    { label: t('Vendas no Follow-up'), value: `${pct(stats.vendasFollowup, stats.followUps)}%` },
   ];
 
   return (
@@ -122,16 +124,16 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
       {/* Header */}
       <div className="flex justify-between items-end pb-4 flex-wrap gap-3">
         <div>
-          <h2 className="text-2xl font-bold text-foreground mb-1">Funil Comercial</h2>
-          <p className="text-muted-foreground text-xs uppercase tracking-widest">Visão Geral do Time</p>
+          <h2 className="text-2xl font-bold text-foreground mb-1">{t('Funil de Conversão')}</h2>
+          <p className="text-muted-foreground text-xs uppercase tracking-widest">{t('Visão Geral')}</p>
         </div>
         {isAdmin && (
           <Select value={selectedSeller} onValueChange={setSelectedSeller}>
             <SelectTrigger className="w-[200px] bg-card">
-              <SelectValue placeholder="Filtrar vendedora" />
+              <SelectValue placeholder={t('Filtrar vendedora')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todas as vendedoras</SelectItem>
+              <SelectItem value="all">{t('Todas as vendedoras')}</SelectItem>
               {sellers.map(s => (
                 <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
               ))}
@@ -148,26 +150,26 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
           <div className="relative z-10 space-y-8">
             {/* Top of Funnel */}
             <div className="space-y-1">
-              <NeonFunnelBar label="Leads Coletados" value={stats.coletados} max={maxVal} color="#ef4444" />
-              <NeonFunnelBar label="WhatsApp Enviado" subLabel={`${pct(stats.whatsappEnviado, stats.coletados)}% de Coletados`} value={stats.whatsappEnviado} max={maxVal} color="#dc2626" />
-              <NeonFunnelBar label="Agendamentos" subLabel={`${pct(stats.agendamentos, stats.coletados)}% de Coletados`} value={stats.agendamentos} max={maxVal} color="#b91c1c" />
+              <NeonFunnelBar label={t('Leads Coletados (com responsável)')} value={stats.coletados} max={maxVal} color="#ef4444" />
+              <NeonFunnelBar label={t('WhatsApp Enviado')} subLabel={`${pct(stats.whatsappEnviado, stats.coletados)}%`} value={stats.whatsappEnviado} max={maxVal} color="#dc2626" />
+              <NeonFunnelBar label={t('Agendamentos')} subLabel={`${pct(stats.agendamentos, stats.coletados)}%`} value={stats.agendamentos} max={maxVal} color="#b91c1c" />
             </div>
 
             <div className="h-px bg-border/30 mx-4" />
 
             {/* Middle of Funnel */}
             <div className="space-y-1">
-              <NeonFunnelBar label="Reuniões Realizadas" subLabel={`${pct(stats.reunioes, stats.agendamentos)}% de Agendamentos`} value={stats.reunioes} max={maxVal} color="#ef4444" />
-              <NeonFunnelBar label="No-show" subLabel={`${pct(stats.noShows, stats.agendamentos)}% de Agendamentos`} value={stats.noShows} max={maxVal} color="#7f1d1d" />
-              <NeonFunnelBar label="Follow-up" subLabel={`${pct(stats.followUps, stats.reunioes)}% de Reuniões`} value={stats.followUps} max={maxVal} color="#991b1b" />
+              <NeonFunnelBar label={t('Reuniões Realizadas')} subLabel={`${pct(stats.reunioes, stats.agendamentos)}%`} value={stats.reunioes} max={maxVal} color="#ef4444" />
+              <NeonFunnelBar label={t('No-show')} subLabel={`${pct(stats.noShows, stats.agendamentos)}%`} value={stats.noShows} max={maxVal} color="#7f1d1d" />
+              <NeonFunnelBar label={t('Follow-up')} subLabel={`${pct(stats.followUps, stats.reunioes)}%`} value={stats.followUps} max={maxVal} color="#991b1b" />
             </div>
 
             <div className="h-px bg-border/30 mx-4" />
 
             {/* Bottom of Funnel */}
             <div className="space-y-1">
-              <NeonFunnelBar label="Vendas na Call" subLabel={`${pct(stats.vendasCall, stats.reunioes)}% de Reuniões`} value={stats.vendasCall} max={maxVal} color="#22c55e" />
-              <NeonFunnelBar label="Vendas no Follow-up" subLabel={`${pct(stats.vendasFollowup, stats.followUps)}% de Follow-ups`} value={stats.vendasFollowup} max={maxVal} color="#22c55e" />
+              <NeonFunnelBar label={t('Vendas na Call')} subLabel={`${pct(stats.vendasCall, stats.reunioes)}%`} value={stats.vendasCall} max={maxVal} color="#22c55e" />
+              <NeonFunnelBar label={t('Vendas no Follow-up')} subLabel={`${pct(stats.vendasFollowup, stats.followUps)}%`} value={stats.vendasFollowup} max={maxVal} color="#22c55e" />
             </div>
           </div>
         </div>
@@ -177,7 +179,7 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
           <div>
             <h3 className="text-foreground font-bold mb-4 flex items-center gap-2">
               <span className="w-1 h-4 bg-destructive rounded-full shadow-[0_0_10px_hsl(var(--destructive))]" />
-              Taxas de Conversão
+              {t('Taxas de Conversão')}
             </h3>
             <div className="grid grid-cols-2 gap-3">
               {conversionCards.map(c => (
@@ -188,7 +190,7 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
 
           {/* Total Sales Card */}
           <div className="bg-gradient-to-br from-destructive/20 to-background p-6 rounded-2xl relative overflow-hidden group">
-            <p className="text-muted-foreground text-xs uppercase font-bold tracking-widest mb-2 relative z-10">Total de Vendas</p>
+            <p className="text-muted-foreground text-xs uppercase font-bold tracking-widest mb-2 relative z-10">{t('Total de Vendas')}</p>
             <p className="text-5xl font-black text-foreground relative z-10 drop-shadow-xl group-hover:scale-105 transition-transform origin-left">
               {totalVendas}
             </p>

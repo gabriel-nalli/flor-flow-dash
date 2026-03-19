@@ -3,14 +3,16 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Outlet } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar } from './AppSidebar';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function AppLayout() {
-  const { selectedProfile, setSelectedProfile, isAdmin } = useProfileSelector();
+  const { selectedProfile, setSelectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const { signOut } = useAuth();
+  const { lang, setLang, t } = useLanguage();
   const [isLight, setIsLight] = useState(() => {
     return localStorage.getItem('theme') === 'light';
   });
@@ -28,12 +30,23 @@ export default function AppLayout() {
           <SidebarTrigger />
           <div className="flex-1" />
           <div className="flex items-center gap-2">
+            {/* Language Toggle */}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLang(lang === 'pt' ? 'es' : 'pt')}
+              className="h-9 px-3 text-xs font-bold gap-1.5 text-muted-foreground hover:text-foreground"
+              title={lang === 'pt' ? 'Cambiar a Español' : 'Mudar para Português'}
+            >
+              <span className="text-base">{lang === 'pt' ? '🇧🇷' : '🇪🇸'}</span>
+              {lang === 'pt' ? 'PT' : 'ES'}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={signOut}
               className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-              title="Sair da conta"
+              title={t('Sair da conta')}
             >
               <LogOut className="w-4 h-4" />
             </Button>
@@ -42,7 +55,7 @@ export default function AppLayout() {
               size="icon"
               onClick={() => setIsLight(!isLight)}
               className="h-9 w-9"
-              title={isLight ? 'Modo escuro' : 'Modo claro'}
+              title={isLight ? t('Modo escuro') : t('Modo claro')}
             >
               {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </Button>
@@ -51,7 +64,7 @@ export default function AppLayout() {
               <Select
                 value={selectedProfile.id}
                 onValueChange={(id) => {
-                  const profile = TEAM_MEMBERS.find(p => p.id === id);
+                  const profile = teamMembers.find(p => p.id === id);
                   if (profile) setSelectedProfile(profile);
                 }}
               >
@@ -59,7 +72,7 @@ export default function AppLayout() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {TEAM_MEMBERS.map(p => (
+                  {teamMembers.map(p => (
                     <SelectItem key={p.id} value={p.id}>
                       {p.full_name} ({p.role})
                     </SelectItem>

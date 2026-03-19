@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Progress } from '@/components/ui/progress';
@@ -26,7 +27,8 @@ function getBlockOrder(template: Array<{ block: string; name: string }>) {
 }
 
 export default function Routine() {
-  const { selectedProfile, isAdmin } = useProfileSelector();
+  const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
+  const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const dateStr = format(selectedDate, 'yyyy-MM-dd');
@@ -72,22 +74,23 @@ export default function Routine() {
     queryClient.invalidateQueries({ queryKey: ['routine'] });
   };
 
-  // Admin view: show all team members
-  if (isAdmin) {
-    const members = TEAM_MEMBERS.filter(m => m.role !== 'ADMIN');
+  const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
+
+  if (isGlobalAdminView) {
+    const members = teamMembers.filter(m => m.role !== 'ADMIN');
 
     return (
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold">Rotina Diária — Visão Geral</h1>
+            <h1 className="text-3xl font-bold">{t('Rotina Diária — Visão Geral')}</h1>
             <p className="text-muted-foreground capitalize">{dateLabel}</p>
           </div>
           <DateFilter selectedDate={selectedDate} onDateChange={setSelectedDate} />
         </div>
 
         {isLoading ? (
-          <div className="text-center py-8 text-muted-foreground">Carregando rotinas...</div>
+          <div className="text-center py-8 text-muted-foreground">{t('Carregando rotinas...')}</div>
         ) : (
           members.map(member => {
             const memberTemplate = getRoleRoutine(member.role);
@@ -164,7 +167,7 @@ export default function Routine() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Rotina Diária</h1>
+          <h1 className="text-3xl font-bold">{t('Rotina Diária')}</h1>
           <p className="text-muted-foreground">
             <span className="capitalize">{dateLabel}</span> — {selectedProfile.full_name} ({selectedProfile.role})
           </p>
@@ -175,7 +178,7 @@ export default function Routine() {
       <Card>
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium">{completed}/{total} tarefas concluídas</span>
+            <span className="text-sm font-medium">{completed}/{total} {t('tarefas concluídas')}</span>
             <span className="text-sm text-muted-foreground">{Math.round(progress)}%</span>
           </div>
           <Progress value={progress} className="h-2" />
@@ -183,7 +186,7 @@ export default function Routine() {
       </Card>
 
       {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Carregando rotina...</div>
+        <div className="text-center py-8 text-muted-foreground">{t('Carregando rotina...')}</div>
       ) : (
         blockOrder.filter(block => grouped[block]).map(block => (
           <Card key={block}>

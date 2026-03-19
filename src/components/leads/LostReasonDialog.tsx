@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { XCircle } from 'lucide-react';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface LostReasonDialogProps {
   open: boolean;
@@ -21,6 +22,7 @@ const QUICK_REASONS = [
 
 export function LostReasonDialog({ open, onOpenChange, leadName, onConfirm }: LostReasonDialogProps) {
   const [reason, setReason] = useState('');
+  const { t } = useLanguage();
 
   const handleConfirm = () => {
     if (!reason.trim()) return;
@@ -38,10 +40,10 @@ export function LostReasonDialog({ open, onOpenChange, leadName, onConfirm }: Lo
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-destructive">
             <XCircle size={18} />
-            Lead Perdido
+            {t('Lead Perdido')}
           </DialogTitle>
           <DialogDescription>
-            Por que <span className="font-semibold text-foreground">{leadName}</span> foi perdido?
+            {t('Por que')} <span className="font-semibold text-foreground">{leadName}</span> {t('foi perdido?')}
           </DialogDescription>
         </DialogHeader>
 
@@ -58,13 +60,13 @@ export function LostReasonDialog({ open, onOpenChange, leadName, onConfirm }: Lo
                     : 'bg-muted text-muted-foreground hover:bg-muted/80'
                 }`}
               >
-                {r}
+                {t(r as any)}
               </button>
             ))}
           </div>
 
           <Textarea
-            placeholder="Descreva o motivo da perda..."
+            placeholder={t('Descreva o motivo da perda...')}
             value={reason}
             onChange={e => setReason(e.target.value)}
             className="bg-secondary border-none min-h-[80px]"
@@ -77,7 +79,7 @@ export function LostReasonDialog({ open, onOpenChange, leadName, onConfirm }: Lo
             className="w-full gap-2"
           >
             <XCircle size={16} />
-            Confirmar Lead Perdido
+            {t('Confirmar Lead Perdido')}
           </Button>
         </div>
       </DialogContent>

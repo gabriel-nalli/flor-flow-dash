@@ -1,8 +1,16 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { CalendarIcon } from 'lucide-react';
+import { startOfDay, endOfDay, startOfMonth, endOfMonth, isWithinInterval, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import type { DateRange } from 'react-day-picker';
 
 const ADMIN_GOAL = 200000;
 const SELLER_GOAL = 50000;
@@ -12,9 +20,10 @@ interface NeonGaugeProps {
   label: string;
   subLabel: string;
   color: 'green' | 'purple';
+  goalLabel: string;
 }
 
-function NeonGauge({ percentage, label, subLabel, color }: NeonGaugeProps) {
+function NeonGauge({ percentage, label, subLabel, color, goalLabel }: NeonGaugeProps) {
   const radius = 120;
   const stroke = 15;
   const normalizedRadius = radius - stroke * 2;
@@ -74,7 +83,7 @@ function NeonGauge({ percentage, label, subLabel, color }: NeonGaugeProps) {
             {percentage}%
           </span>
           <span className="text-sm text-muted-foreground font-bold uppercase tracking-widest opacity-80">
-            da meta
+            {goalLabel}
           </span>
         </div>
       </div>
@@ -105,6 +114,20 @@ interface SalesGoalChartProps {
 
 export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSellerChange }: SalesGoalChartProps) {
   const GOAL = isAdmin ? ADMIN_GOAL : SELLER_GOAL;
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const { t } = useLanguage();
+
+  const isThisMonthActive =
+    dateRange?.from?.getTime() === startOfMonth(new Date()).getTime() &&
+    dateRange?.to?.getTime() === endOfMonth(new Date()).getTime();
+
+  const handleThisMonth = () => {
+    if (isThisMonthActive) {
+      setDateRange(undefined);
+    } else {
+      setDateRange({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) });
+    }
+  };
 
   // Busca os perfis REAIS do banco (IDs corretos para cruzar com assigned_to dos leads)
   const { data: profiles = [] } = useQuery({
@@ -117,10 +140,25 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
 
   const sellers = profiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
 
-  const wonLeads = useMemo(() =>
-    leads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup'),
-    [leads]
-  );
+  const wonLeads = useMemo(() => {
+    let list = leads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup');
+
+    if (dateRange?.from) {
+      list = list.filter(l => {
+        if (!l.last_action_at) return false;
+        try {
+          return isWithinInterval(parseISO(l.last_action_at), {
+            start: startOfDay(dateRange.from!),
+            end: endOfDay(dateRange.to ?? dateRange.from!),
+          });
+        } catch {
+          return false;
+        }
+      });
+    }
+
+    return list;
+  }, [leads, dateRange]);
 
   const stats = useMemo(() => {
     const filtered = selectedSellerId === 'all'
@@ -153,57 +191,111 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-end flex-wrap gap-3">
-        {isAdmin && onSellerChange && (
-          <Select value={selectedSellerId} onValueChange={onSellerChange}>
-            <SelectTrigger className="w-[200px]">
-              <SelectValue placeholder="Filtrar vendedora" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas</SelectItem>
-              {sellers.map(s => (
-                <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Botão "Este mês" */}
+          <Button
+            variant={isThisMonthActive ? 'default' : 'outline'}
+            size="sm"
+            className="h-9 text-xs"
+            onClick={handleThisMonth}
+          >
+            {t('Este mês')}
+          </Button>
+
+          {/* Date range picker */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={`h-9 text-xs gap-1.5 ${dateRange?.from && !isThisMonthActive ? 'text-foreground' : 'text-muted-foreground'}`}
+              >
+                <CalendarIcon className="w-3.5 h-3.5" />
+                {dateRange?.from && !isThisMonthActive ? (
+                  dateRange.to
+                    ? `${format(dateRange.from, 'dd/MM/yy')} → ${format(dateRange.to, 'dd/MM/yy')}`
+                    : format(dateRange.from, 'dd/MM/yy')
+                ) : t('Período')}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={setDateRange}
+                numberOfMonths={2}
+                locale={ptBR}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          {/* Limpar */}
+          {dateRange?.from && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-9 text-xs text-muted-foreground"
+              onClick={() => setDateRange(undefined)}
+            >
+              {t('Limpar')}
+            </Button>
+          )}
+
+          {isAdmin && onSellerChange && (
+            <Select value={selectedSellerId} onValueChange={onSellerChange}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder={t('Filtrar vendedora')} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">{t('Todas as vendedoras')}</SelectItem>
+                {sellers.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </div>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col md:flex-row gap-16 items-center justify-center py-8">
           <NeonGauge
             percentage={pctBruto}
-            label="Venda Bruta"
+            label={t('Venda Bruta')}
             subLabel={`R$ ${stats.totalBruto.toLocaleString('pt-BR')}`}
             color="green"
+            goalLabel={t('da meta')}
           />
           <NeonGauge
             percentage={pctCash}
-            label="Cash-in (Líquido)"
+            label={t('Cash-in (Líquido)')}
             subLabel={`R$ ${stats.totalCash.toLocaleString('pt-BR')}`}
             color="green"
+            goalLabel={t('da meta')}
           />
         </div>
 
         <div className="mt-4 text-center text-sm text-muted-foreground">
-          {stats.count} venda{stats.count !== 1 ? 's' : ''} registrada{stats.count !== 1 ? 's' : ''} — Meta: R$ {GOAL.toLocaleString('pt-BR')}
+          {stats.count} {t('vendas')} — {t('Meta:')} R$ {GOAL.toLocaleString('pt-BR')}
         </div>
 
         {isAdmin && selectedSellerId === 'all' && sellerStats.length > 0 && (
           <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Por Vendedora</p>
+            <p className="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">{t('Por Vendedora')}</p>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {sellerStats.map(s => (
                 <div key={s.id} className="p-3 rounded-lg bg-muted/20 space-y-1">
                   <p className="text-sm font-semibold">{s.full_name}</p>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Bruto:</span>
+                    <span className="text-muted-foreground">{t('Bruto:')}</span>
                     <span className="font-medium tabular-nums">R$ {s.bruto.toLocaleString('pt-BR')}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Cash-in:</span>
+                    <span className="text-muted-foreground">{t('Cash-in:')}</span>
                     <span className="font-medium tabular-nums" style={{ color: '#00ff9d' }}>R$ {s.cash.toLocaleString('pt-BR')}</span>
                   </div>
                   <div className="flex justify-between text-xs">
-                    <span className="text-muted-foreground">Vendas:</span>
+                    <span className="text-muted-foreground">{t('Vendas:')}</span>
                     <span className="font-medium">{s.count}</span>
                   </div>
                 </div>

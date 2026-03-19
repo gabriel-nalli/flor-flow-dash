@@ -1,6 +1,7 @@
 import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import logoBelaflor from '@/assets/logo-belaflor.svg';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -9,16 +10,20 @@ import {
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isAdmin } = useProfileSelector();
+  const { isAdmin, selectedProfile } = useProfileSelector();
+  const { t } = useLanguage();
 
   const menuItems = [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
-    { icon: Users, label: 'Leads', path: '/leads' },
-    { icon: CheckSquare, label: 'Rotina', path: '/routine' },
+    { icon: LayoutDashboard, label: t('Dashboard'), path: '/' },
+    // BR operation or admin: show regular Leads
+    ...(isAdmin || selectedProfile.operation !== 'ES' ? [{ icon: Users, label: 'Leads - Thaylor', path: '/leads' }] : []),
+    // ES operation or admin or BR operation: show Leads Alicia
+    ...(isAdmin || selectedProfile.operation === 'ES' || selectedProfile.operation === 'BR' ? [{ icon: Users, label: 'Leads - Alicia', path: '/leads-alicia' }] : []),
+    { icon: CheckSquare, label: t('Rotina'), path: '/routine' },
     ...(isAdmin ? [
-      { icon: Filter, label: 'Funil Webinário', path: '/funil-webinar' },
-      { icon: Target, label: 'Meta de Vendas', path: '/meta' },
-      { icon: DollarSign, label: 'Comissões', path: '/comissoes' },
+      { icon: Filter, label: t('Funil Webinário'), path: '/funil-webinar' },
+      { icon: Target, label: t('Meta de Vendas'), path: '/meta' },
+      { icon: DollarSign, label: t('Comissões'), path: '/comissoes' },
     ] : []),
   ];
 
@@ -40,7 +45,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('Menu')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map(item => (

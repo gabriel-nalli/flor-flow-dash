@@ -10,9 +10,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { ExternalLink, TrendingUp, XCircle, FileText, Filter, CalendarIcon } from 'lucide-react';
-import { format, parseISO, isWithinInterval, startOfDay, endOfDay } from 'date-fns';
+import { format, parseISO, isWithinInterval, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import type { DateRange } from 'react-day-picker';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface SalesAndLossesTableProps {
     leads: any[];
@@ -76,6 +77,19 @@ export function SalesAndLossesTable({
     const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
     const NEON_GREEN = '#00ff9d';
+    const { t } = useLanguage();
+
+    const isThisMonthActive =
+        dateRange?.from?.getTime() === startOfMonth(new Date()).getTime() &&
+        dateRange?.to?.getTime() === endOfMonth(new Date()).getTime();
+
+    const handleThisMonth = () => {
+        if (isThisMonthActive) {
+            setDateRange(undefined);
+        } else {
+            setDateRange({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) });
+        }
+    };
 
     // Busca profiles reais do banco (IDs batem com assigned_to)
     const { data: dbProfiles = [] } = useQuery({
@@ -213,7 +227,7 @@ export function SalesAndLossesTable({
                     <div className="flex flex-wrap items-center justify-between gap-3">
                         <CardTitle className="text-base flex items-center gap-2">
                             <TrendingUp className="w-5 h-5" style={{ color: NEON_GREEN, filter: `drop-shadow(0 0 4px ${NEON_GREEN})` }} />
-                            Registro de Vendas e Perdidos
+                            {t('Registro de Vendas e Perdidos')}
                         </CardTitle>
 
                         {/* Filtros */}
@@ -224,10 +238,10 @@ export function SalesAndLossesTable({
                             {isAdmin && (
                                 <Select value={filterSeller} onValueChange={setFilterSeller}>
                                     <SelectTrigger className="h-8 w-[160px] text-xs">
-                                        <SelectValue placeholder="Vendedora" />
+                                        <SelectValue placeholder={t('Vendedora')} />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem value="all">Todas vendedoras</SelectItem>
+                                        <SelectItem value="all">{t('Todas vendedoras')}</SelectItem>
                                         {sellers.map(s => (
                                             <SelectItem key={s.id} value={s.id}>{s.full_name}</SelectItem>
                                         ))}
@@ -238,29 +252,39 @@ export function SalesAndLossesTable({
                             {/* Método de pagamento */}
                             <Select value={filterPayment} onValueChange={setFilterPayment}>
                                 <SelectTrigger className="h-8 w-[150px] text-xs">
-                                    <SelectValue placeholder="Pagamento" />
+                                    <SelectValue placeholder={t('Pagamento')} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">Todos</SelectItem>
-                                    <SelectItem value="boleto">Boleto</SelectItem>
+                                    <SelectItem value="all">{t('Todos')}</SelectItem>
+                                    <SelectItem value="boleto">{t('Boleto')}</SelectItem>
                                     <SelectItem value="hubla">HUBLA</SelectItem>
-                                    <SelectItem value="hubla_boleto">HUBLA + Boleto</SelectItem>
+                                    <SelectItem value="hubla_boleto">HUBLA + {t('Boleto')}</SelectItem>
                                 </SelectContent>
                             </Select>
+
+                            {/* Botão Este mês */}
+                            <Button
+                                variant={isThisMonthActive ? 'default' : 'outline'}
+                                size="sm"
+                                className="h-8 text-xs"
+                                onClick={handleThisMonth}
+                            >
+                                {t('Este mês')}
+                            </Button>
 
                             {/* Date range picker */}
                             <Popover>
                                 <PopoverTrigger asChild>
                                     <Button
                                         variant="outline"
-                                        className={`h-8 text-xs gap-1.5 ${dateRange?.from ? 'text-foreground' : 'text-muted-foreground'}`}
+                                        className={`h-8 text-xs gap-1.5 ${dateRange?.from && !isThisMonthActive ? 'text-foreground' : 'text-muted-foreground'}`}
                                     >
                                         <CalendarIcon className="w-3.5 h-3.5" />
-                                        {dateRange?.from ? (
+                                        {dateRange?.from && !isThisMonthActive ? (
                                             dateRange.to
                                                 ? `${format(dateRange.from, 'dd/MM/yy')} → ${format(dateRange.to, 'dd/MM/yy')}`
                                                 : format(dateRange.from, 'dd/MM/yy')
-                                        ) : 'Período'}
+                                        ) : t('Período')}
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent className="w-auto p-0" align="end">
@@ -282,7 +306,7 @@ export function SalesAndLossesTable({
                                     className="h-8 text-xs text-muted-foreground"
                                     onClick={() => { setFilterSeller('all'); setFilterPayment('all'); setDateRange(undefined); }}
                                 >
-                                    Limpar
+                                    {t('Limpar')}
                                 </Button>
                             )}
                         </div>
@@ -295,14 +319,14 @@ export function SalesAndLossesTable({
                             <TabsList className="w-full sm:w-auto">
                                 <TabsTrigger value="vendas" className="flex items-center gap-1.5">
                                     <TrendingUp className="w-3.5 h-3.5" />
-                                    Vendas
+                                    {t('Vendas')}
                                     <Badge className="ml-1 text-xs px-1.5 py-0" style={{ background: NEON_GREEN, color: '#000' }}>
                                         {wonLeads.length}
                                     </Badge>
                                 </TabsTrigger>
                                 <TabsTrigger value="perdidos" className="flex items-center gap-1.5">
                                     <XCircle className="w-3.5 h-3.5" />
-                                    Perdidos
+                                    {t('Perdidos')}
                                     <Badge className="ml-1 text-xs px-1.5 py-0" variant="destructive">
                                         {lostLeads.length}
                                     </Badge>
@@ -315,21 +339,21 @@ export function SalesAndLossesTable({
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Lead</TableHead>
-                                        {isAdmin && <TableHead>Vendedora</TableHead>}
-                                        <TableHead>Tipo</TableHead>
-                                        <TableHead>Pagamento</TableHead>
-                                        <TableHead className="text-right">Bruto</TableHead>
+                                        <TableHead>{t('Lead')}</TableHead>
+                                        {isAdmin && <TableHead>{t('Vendedora')}</TableHead>}
+                                        <TableHead>{t('Tipo')}</TableHead>
+                                        <TableHead>{t('Pagamento')}</TableHead>
+                                        <TableHead className="text-right">{t('Bruto')}</TableHead>
                                         <TableHead className="text-right">Cash-in</TableHead>
-                                        <TableHead>Comprovante</TableHead>
-                                        <TableHead>Data</TableHead>
+                                        <TableHead>{t('Comprovante')}</TableHead>
+                                        <TableHead>{t('Data')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {wonLeads.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={colSpanVendas} className="text-center py-10 text-muted-foreground">
-                                                Nenhuma venda encontrada
+                                                {t('Nenhuma venda encontrada')}
                                             </TableCell>
                                         </TableRow>
                                     ) : wonLeads.map(lead => (
@@ -349,7 +373,7 @@ export function SalesAndLossesTable({
                                                         : { borderColor: 'hsl(280,70%,60%)', color: 'hsl(280,70%,60%)' }
                                                     }
                                                 >
-                                                    {lead.status === 'fechado_call' ? 'Call' : 'Follow-up'}
+                                                    {lead.status === 'fechado_call' ? t('Call') : t('Follow-up')}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell className="text-sm">
@@ -391,7 +415,7 @@ export function SalesAndLossesTable({
                                                         className="h-7 text-xs gap-1"
                                                         onClick={() => setComprovanteUrl(lead.comprovante_url)}
                                                     >
-                                                        <FileText className="w-3 h-3" /> Ver
+                                                        <FileText className="w-3 h-3" /> {t('Ver')}
                                                     </Button>
                                                 ) : (
                                                     <span className="text-muted-foreground text-xs">—</span>
@@ -410,16 +434,16 @@ export function SalesAndLossesTable({
                                 <div className="mx-4 mb-4 mt-2 rounded-xl border border-border overflow-hidden">
                                     <div className="px-4 py-2.5 bg-muted/30 border-b border-border">
                                         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                                            Comissão por Vendedora — {(COMMISSION_RATE * 100).toFixed(1)}% sobre Cash-in
+                                            {t('Comissão por Vendedora')} — {(COMMISSION_RATE * 100).toFixed(1)}% sobre Cash-in
                                         </p>
                                     </div>
                                     <table className="w-full text-sm">
                                         <thead>
                                             <tr className="border-b border-border text-xs text-muted-foreground">
-                                                <th className="text-left px-4 py-2 font-medium">Vendedora</th>
-                                                <th className="text-center px-4 py-2 font-medium">Vendas</th>
-                                                <th className="text-right px-4 py-2 font-medium">Total Cash-in</th>
-                                                <th className="text-right px-4 py-2 font-medium">Comissão (7,5%)</th>
+                                                <th className="text-left px-4 py-2 font-medium">{t('Vendedora')}</th>
+                                                <th className="text-center px-4 py-2 font-medium">{t('Vendas')}</th>
+                                                <th className="text-right px-4 py-2 font-medium">{t('Total Cash-in')}</th>
+                                                <th className="text-right px-4 py-2 font-medium">{t('Comissão (7,5%)')}</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -435,7 +459,7 @@ export function SalesAndLossesTable({
                                             ))}
                                             {/* Linha de total */}
                                             <tr className="bg-muted/30 font-bold">
-                                                <td className="px-4 py-3 text-sm">Total</td>
+                                                <td className="px-4 py-3 text-sm">{t('Total')}</td>
                                                 <td className="px-4 py-3 text-center text-sm">{wonLeads.length}</td>
                                                 <td className="px-4 py-3 text-right font-mono text-sm">{fmtBRL(totalCashAll)}</td>
                                                 <td
@@ -456,18 +480,18 @@ export function SalesAndLossesTable({
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        <TableHead>Lead</TableHead>
-                                        {isAdmin && <TableHead>Vendedora</TableHead>}
-                                        <TableHead>Faturamento</TableHead>
-                                        <TableHead>Motivo</TableHead>
-                                        <TableHead>Data</TableHead>
+                                        <TableHead>{t('Lead')}</TableHead>
+                                        {isAdmin && <TableHead>{t('Vendedora')}</TableHead>}
+                                        <TableHead>{t('Faturamento')}</TableHead>
+                                        <TableHead>{t('Motivo')}</TableHead>
+                                        <TableHead>{t('Data')}</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
                                     {lostLeads.length === 0 ? (
                                         <TableRow>
                                             <TableCell colSpan={isAdmin ? 5 : 4} className="text-center py-10 text-muted-foreground">
-                                                Nenhum lead perdido encontrado
+                                                {t('Nenhum lead perdido encontrado')}
                                             </TableCell>
                                         </TableRow>
                                     ) : lostLeads.map(lead => (

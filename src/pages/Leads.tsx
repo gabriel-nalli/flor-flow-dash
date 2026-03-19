@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, UserCheck, Download, Plus } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
@@ -10,6 +11,7 @@ import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
 export default function Leads() {
   const { selectedProfile, isAdmin } = useProfileSelector();
+  const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
 
@@ -54,7 +56,9 @@ export default function Leads() {
 
   const webinarLeads = allLeads.filter(l => !l.assigned_to);
   const collectedLeads = allLeads.filter(l => !!l.assigned_to);
-  const myLeads = isAdmin
+  const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
+
+  const myLeads = isGlobalAdminView
     ? collectedLeads
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
@@ -66,26 +70,26 @@ export default function Leads() {
     <div className="space-y-6">
       {!isAdmin && (
         <div>
-          <h2 className="text-lg font-bold text-foreground mb-3">Meta de Vendas</h2>
+          <h2 className="text-lg font-bold text-foreground mb-3">{t('Meta de Vendas')}</h2>
           <SalesGoalChart leads={allLeads} isAdmin={false} selectedSellerId={selectedProfile.id} />
         </div>
       )}
 
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Gerenciar Leads</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-2">{t('Gerenciar Leads')}</h1>
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
-              Total: <span className="font-bold text-foreground">{totalLeads}</span>
+              {t('Total:')} <span className="font-bold text-foreground">{totalLeads}</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs text-green-500">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
-              Coletados: <span className="font-bold text-green-500">{coletados}</span>
+              {t('Coletados:')} <span className="font-bold text-green-500">{coletados}</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs text-amber-500">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
-              Pendentes: <span className="font-bold text-amber-500">{pendentes}</span>
+              {t('Pendentes:')} <span className="font-bold text-amber-500">{pendentes}</span>
             </span>
           </div>
         </div>
@@ -123,7 +127,7 @@ export default function Leads() {
               className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
             >
               <Download size={14} />
-              Exportar
+              {t('Exportar')}
             </button>
           )}
           <button
@@ -132,7 +136,7 @@ export default function Leads() {
             className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-4 py-2 rounded-lg transition-all text-sm font-bold"
           >
             <Plus size={14} />
-            Novo Lead
+            {t('Novo Lead')}
           </button>
         </div>
       </div>
@@ -147,7 +151,7 @@ export default function Leads() {
                 : 'text-muted-foreground hover:text-foreground/70'
               }`}
           >
-            {isAdmin ? 'Leads Coletados' : 'Meus Leads'}
+            {isGlobalAdminView ? t('Leads Coletados') : t('Meus Leads')}
             {activeTab === 'meus' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}
@@ -160,7 +164,7 @@ export default function Leads() {
                 : 'text-muted-foreground hover:text-foreground/70'
               }`}
           >
-            Leads Webinar
+            {t('Leads Webinar')}
             {activeTab === 'webinar' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}
