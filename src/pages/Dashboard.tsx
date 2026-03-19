@@ -1,14 +1,15 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useProfileSelector, TEAM_MEMBERS } from '@/contexts/ProfileSelectorContext';
+import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
+import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, Filter, LucideIcon } from 'lucide-react';
 import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart';
 import { AlertLeadsDialog } from '@/components/dashboard/AlertLeadsDialog';
-import { isToday, parseISO, format } from 'date-fns';
+import { isToday, parseISO, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
 
 function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value: number; icon: LucideIcon; color: string }) {
   return (
@@ -46,10 +47,12 @@ function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value
 }
 
 export default function Dashboard() {
-  const { selectedProfile, isAdmin } = useProfileSelector();
+  const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
+  const { t } = useLanguage();
   const [showFollowupDialog, setShowFollowupDialog] = useState(false);
   const [showSemResponsavelDialog, setShowSemResponsavelDialog] = useState(false);
   const [segmentFilter, setSegmentFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState('this_month');
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
@@ -97,29 +100,49 @@ export default function Dashboard() {
     [leads]
   );
 
+  const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
+
   // Filter leads based on selected profile
-  const profileFilteredLeads = isAdmin ? leads : leads.filter(l => l.assigned_to === selectedProfile.id);
+  const profileFilteredLeads = isGlobalAdminView ? leads : leads.filter(l => l.assigned_to === selectedProfile.id);
 
   // Segment filter (admin only)
   const segmentedLeads = useMemo(() => {
-    if (!isAdmin || segmentFilter === 'all') return profileFilteredLeads;
+    if (!isGlobalAdminView || segmentFilter === 'all') return profileFilteredLeads;
     if (segmentFilter === 'webinars') return profileFilteredLeads.filter(l => l.origem === 'webinar' && !isManualTag(l.webinar_date_tag));
     if (segmentFilter === 'manual') return profileFilteredLeads.filter(l => l.origem !== 'webinar' || isManualTag(l.webinar_date_tag));
     // specific webinar tag
     return profileFilteredLeads.filter(l => l.webinar_date_tag === segmentFilter);
-  }, [profileFilteredLeads, segmentFilter, isAdmin]);
+  }, [profileFilteredLeads, segmentFilter, isGlobalAdminView]);
 
   const visibleLeads = segmentedLeads;
   const visibleLeadIds = new Set(visibleLeads.map(l => l.id));
 
-  // Count from lead_actions history (acumulativo)
+  // Date range for filter
+  const dateRange = useMemo(() => {
+    if (dateFilter === 'all') return null;
+    const now = new Date();
+    if (dateFilter === 'today') return { start: startOfDay(now), end: endOfDay(now) };
+    if (dateFilter === 'this_week') return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
+    if (dateFilter === 'this_month') return { start: startOfMonth(now), end: endOfMonth(now) };
+    return { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) };
+  }, [dateFilter]);
+
+  const isInRange = (dateStr: string | null | undefined) => {
+    if (!dateRange) return true;
+    if (!dateStr) return false;
+    try { return isWithinInterval(parseISO(dateStr), dateRange); }
+    catch { return false; }
+  };
+
+  // Count from lead_actions history filtered by date period
   const visibleActions = allActions.filter(a => a.lead_id && visibleLeadIds.has(a.lead_id));
-  const countAction = (actionType: string) => new Set(visibleActions.filter(a => a.action_type === actionType).map(a => a.lead_id)).size;
+  const periodActions = visibleActions.filter(a => isInRange(a.created_at));
+  const countAction = (actionType: string) => new Set(periodActions.filter(a => a.action_type === actionType).map(a => a.lead_id)).size;
 
   const leadsToday = visibleLeads.filter(l => l.created_at && isToday(parseISO(l.created_at))).length;
   const agendados = countAction('scheduled_meeting');
   const reunioes = countAction('meeting_done');
-  const vendas = visibleLeads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup').length;
+  const vendas = visibleLeads.filter(l => (l.sale_status === 'won_call' || l.sale_status === 'won_followup') && isInRange(l.last_action_at)).length;
   const followUpLeads = visibleLeads.filter(l => l.next_followup_date && new Date(l.next_followup_date) <= new Date());
   const followUpPendente = followUpLeads.length;
   const semResponsavelLeads = leads.filter(l => !l.assigned_to);
@@ -129,18 +152,28 @@ export default function Dashboard() {
   profiles.forEach((p: any) => { if (p.id && p.full_name) profileMap[p.id] = p.full_name; });
 
   const metrics = [
-    { label: 'Leads Hoje', value: leadsToday, icon: Users, color: '#db2777' },
-    { label: 'Agendamentos', value: agendados, icon: Calendar, color: '#ef4444' },
-    { label: 'Reuniões', value: reunioes, icon: Phone, color: '#3b82f6' },
-    { label: 'Vendas', value: vendas, icon: TrendingUp, color: '#22c55e' },
-    { label: 'Follow-up Pendente', value: followUpPendente, icon: AlertTriangle, color: '#eab308' },
-    { label: 'Total Leads', value: visibleLeads.length, icon: CheckCircle2, color: '#9ca3af' },
+    { label: t('Leads Hoje'), value: leadsToday, icon: Users, color: '#db2777' },
+    { label: t('Agendamentos'), value: agendados, icon: Calendar, color: '#ef4444' },
+    { label: t('Reuniões'), value: reunioes, icon: Phone, color: '#3b82f6' },
+    { label: t('Vendas'), value: vendas, icon: TrendingUp, color: '#22c55e' },
+    { label: t('Follow-up Pendente'), value: followUpPendente, icon: AlertTriangle, color: '#eab308' },
+    { label: t('Total Leads'), value: visibleLeads.length, icon: CheckCircle2, color: '#9ca3af' },
   ];
 
-  const teamMembers = TEAM_MEMBERS.filter(p => p.role !== 'ADMIN');
+  // Usa os perfis REAIS do banco limpando testes e duplicados
+  const realTeamMembers = useMemo(() => {
+    const seen = new Set<string>();
+    return profiles.filter((p: any) => {
+      if (!p.full_name || p.role === 'ADMIN') return false;
+      if (p.full_name.toLowerCase().includes('test')) return false;
+      if (p.id.startsWith('0000')) return false;
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+  }, [profiles]);
 
-  // Usa os perfis REAIS do banco (IDs corretos) para exibir dados por vendedora
-  const realTeamMembers = profiles.filter((p: any) => p.role !== 'ADMIN' && p.full_name);
+  const sellers = realTeamMembers;
 
   const exportCSV = () => {
     const now = format(new Date(), 'yyyy-MM-dd HH:mm');
@@ -190,7 +223,7 @@ export default function Dashboard() {
 
     row('POR VENDEDORA');
     row('Vendedora', 'Cargo', 'Leads Atribuidos', 'Vendas', 'Venda Bruta', 'Cash-in', 'Acoes Hoje');
-    teamMembers.forEach(p => {
+    sellers.forEach(p => {
       const pLeads = leads.filter(l => l.assigned_to === p.id);
       const pWon = pLeads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup');
       const bruto = pWon.reduce((s, l) => s + (Number(l.sale_value) || 0), 0);
@@ -203,7 +236,7 @@ export default function Dashboard() {
     row('DETALHAMENTO DE LEADS');
     row('Nome', 'WhatsApp', 'Email', 'Instagram', 'Origem', 'Status', 'Status Venda', 'Responsavel', 'Data Criacao', 'Valor Venda', 'Cash-in', 'Faturamento');
     leads.forEach(l => {
-      const seller = TEAM_MEMBERS.find(m => m.id === l.assigned_to);
+      const seller = teamMembers.find(m => m.id === l.assigned_to);
       row(
         l.nome, l.whatsapp, l.email, l.instagram, l.origem, l.status, l.sale_status,
         seller?.full_name || 'Sem responsavel',
@@ -227,12 +260,28 @@ export default function Dashboard() {
       {/* Neon Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight mb-1">Dashboard</h1>
+          <h1 className="text-3xl font-black text-foreground tracking-tight mb-1">{t('Dashboard')}</h1>
           <p className="text-muted-foreground text-sm font-medium">
-            {isAdmin ? 'Visão geral do time' : `Visão de ${selectedProfile.full_name}`}
+            {isGlobalAdminView ? t('Visão geral do time') : `Visão de ${selectedProfile.full_name}`}
           </p>
         </div>
         <div className="flex items-center gap-3 flex-wrap">
+          {/* Filtro por período — visível para todos */}
+          <div className="flex items-center gap-2">
+            <Calendar size={14} className="text-muted-foreground" />
+            <Select value={dateFilter} onValueChange={setDateFilter}>
+              <SelectTrigger className="w-[180px] bg-card">
+                <SelectValue placeholder="Período" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Hoje</SelectItem>
+                <SelectItem value="this_week">Esta Semana</SelectItem>
+                <SelectItem value="this_month">Este Mês</SelectItem>
+                <SelectItem value="last_month">Mês Passado</SelectItem>
+                <SelectItem value="all">Todos os Tempos</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           {isAdmin && (
             <div className="flex items-center gap-2">
               <Filter size={14} className="text-muted-foreground" />
@@ -241,12 +290,12 @@ export default function Dashboard() {
                   <SelectValue placeholder="Segmento" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Todos os leads</SelectItem>
-                  <SelectItem value="webinars">Todos os Webinários</SelectItem>
+                  <SelectItem value="all">{t('Todos os leads')}</SelectItem>
+                  <SelectItem value="webinars">{t('Todos os Webinários')}</SelectItem>
                   {realWebinarTags.map(tag => (
                     <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                   ))}
-                  <SelectItem value="manual">Leads Manuais</SelectItem>
+                  <SelectItem value="manual">{t('Leads Manuais')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -257,7 +306,7 @@ export default function Dashboard() {
               className="flex items-center gap-2 bg-card hover:bg-muted text-muted-foreground hover:text-foreground px-5 py-2.5 rounded-lg transition-all text-sm font-semibold group"
             >
               <Download size={16} className="group-hover:-translate-y-0.5 transition-transform" />
-              Exportar CSV
+              {t('Exportar CSV')}
             </button>
           )}
         </div>
@@ -271,7 +320,7 @@ export default function Dashboard() {
               onClick={() => setShowFollowupDialog(true)}
               className="flex items-center gap-2 px-4 py-2 bg-warning/10 text-warning rounded-lg text-sm font-medium hover:bg-warning/20 transition-colors cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" /> {followUpPendente} follow-ups atrasados
+              <AlertTriangle className="w-4 h-4" /> {followUpPendente} {t('follow-ups atrasados')}
             </button>
           )}
           {semResponsavel > 0 && (
@@ -279,14 +328,14 @@ export default function Dashboard() {
               onClick={() => setShowSemResponsavelDialog(true)}
               className="flex items-center gap-2 px-4 py-2 bg-destructive/10 text-destructive rounded-lg text-sm font-medium hover:bg-destructive/20 transition-colors cursor-pointer"
             >
-              <AlertTriangle className="w-4 h-4" /> {semResponsavel} leads sem responsável
+              <AlertTriangle className="w-4 h-4" /> {semResponsavel} {t('leads sem responsável')}
             </button>
           )}
         </div>
       )}
 
       <AlertLeadsDialog
-        title="Follow-ups Atrasados"
+        title={t('Follow-ups Atrasados')}
         leads={followUpLeads}
         profileMap={profileMap}
         open={showFollowupDialog}
@@ -295,7 +344,7 @@ export default function Dashboard() {
         getDate={(l) => l.next_followup_date}
       />
       <AlertLeadsDialog
-        title="Leads sem Responsável"
+        title={t('Leads sem Responsável')}
         leads={semResponsavelLeads}
         profileMap={profileMap}
         open={showSemResponsavelDialog}
@@ -310,33 +359,33 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <SalesFunnelChart leads={isAdmin ? segmentedLeads : visibleLeads} actions={allActions} isAdmin={isAdmin} />
+      <SalesFunnelChart leads={isGlobalAdminView ? segmentedLeads : visibleLeads} actions={allActions.filter(a => isInRange(a.created_at))} isAdmin={isGlobalAdminView} />
 
-      {isAdmin && (
+      {isGlobalAdminView && (
         <Card>
-          <CardHeader><CardTitle>Vendas por Vendedora</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('Vendas por Vendedora')}</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {realTeamMembers.map((p: any) => {
-                const pWon = leads.filter(l => l.assigned_to === p.id && (l.sale_status === 'won_call' || l.sale_status === 'won_followup'));
+                const pWon = leads.filter(l => l.assigned_to === p.id && (l.sale_status === 'won_call' || l.sale_status === 'won_followup') && isInRange(l.last_action_at));
                 const bruto = pWon.reduce((s, l) => s + (Number(l.sale_value) || 0), 0);
                 const cash = pWon.reduce((s, l) => s + (Number(l.cash_value) || 0), 0);
                 return (
                   <Card key={p.id} className="border">
                     <CardContent className="p-4">
                       <p className="font-semibold mb-1">{p.full_name}</p>
-                      <p className="text-xs text-muted-foreground mb-3">{pWon.length} venda{pWon.length !== 1 ? 's' : ''}</p>
+                      <p className="text-xs text-muted-foreground mb-3">{pWon.length} {t('vendas')}</p>
                       <div className="space-y-1 text-sm">
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Bruto:</span>
+                          <span className="text-muted-foreground">{t('Bruto:')}</span>
                           <span className="font-bold tabular-nums">R$ {bruto.toLocaleString('pt-BR')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Cash-in:</span>
+                          <span className="text-muted-foreground">{t('Cash-in:')}</span>
                           <span className="font-bold tabular-nums" style={{ color: 'hsl(160, 80%, 45%)' }}>R$ {cash.toLocaleString('pt-BR')}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Vendas:</span>
+                          <span className="text-muted-foreground">{t('Vendas:')}</span>
                           <span className="font-bold tabular-nums">{pWon.length}</span>
                         </div>
                       </div>
@@ -349,13 +398,13 @@ export default function Dashboard() {
         </Card>
       )}
 
-      {isAdmin && realTeamMembers.length > 0 && (
+      {isGlobalAdminView && realTeamMembers.length > 0 && (
         <Card>
-          <CardHeader><CardTitle>Equipe</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{t('Equipe')}</CardTitle></CardHeader>
           <CardContent>
             <Tabs defaultValue="overview">
               <TabsList className="flex-wrap h-auto">
-                <TabsTrigger value="overview">Visão Geral</TabsTrigger>
+                <TabsTrigger value="overview">{t('Visão Geral')}</TabsTrigger>
                 {realTeamMembers.map((p: any) => (
                   <TabsTrigger key={p.id} value={p.id}>{p.full_name}</TabsTrigger>
                 ))}
@@ -371,9 +420,9 @@ export default function Dashboard() {
                           <p className="font-semibold mb-1">{p.full_name}</p>
                           <p className="text-xs text-muted-foreground mb-3">{p.role}</p>
                           <div className="space-y-1 text-sm">
-                            <p>{pLeads.length} leads atribuídos</p>
-                            <p>{pActions.length} ações hoje</p>
-                            <p>{pLeads.filter(l => l.sale_status === 'won_call' || l.sale_status === 'won_followup').length} vendas</p>
+                            <p>{pLeads.length} {t('leads atribuídos')}</p>
+                            <p>{pActions.length} {t('ações hoje')}</p>
+                            <p>{pLeads.filter(l => (l.sale_status === 'won_call' || l.sale_status === 'won_followup') && isInRange(l.last_action_at)).length} {t('vendas')}</p>
                           </div>
                         </CardContent>
                       </Card>
@@ -385,16 +434,18 @@ export default function Dashboard() {
                 const pLeads = leads.filter(l => l.assigned_to === p.id);
                 const pLeadIds = new Set(pLeads.map(l => l.id));
                 const pAllActions = allActions.filter(a => a.lead_id && pLeadIds.has(a.lead_id));
-                const pCountAction = (at: string) => new Set(pAllActions.filter(a => a.action_type === at).map(a => a.lead_id)).size;
+                const pPeriodActions = pAllActions.filter(a => isInRange(a.created_at));
+                const pCountAction = (at: string) => new Set(pPeriodActions.filter(a => a.action_type === at).map(a => a.lead_id)).size;
                 const pActions = todayActions.filter(a => a.user_id === p.id);
+                const pWonInPeriod = pLeads.filter(l => (l.sale_status === 'won_call' || l.sale_status === 'won_followup') && isInRange(l.last_action_at));
                 return (
                   <TabsContent key={p.id} value={p.id} className="mt-4">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pLeads.length}</p><p className="text-xs text-muted-foreground">Leads</p></CardContent></Card>
-                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pCountAction('scheduled_meeting')}</p><p className="text-xs text-muted-foreground">Agendados</p></CardContent></Card>
-                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pCountAction('meeting_done')}</p><p className="text-xs text-muted-foreground">Reuniões</p></CardContent></Card>
-                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pActions.length}</p><p className="text-xs text-muted-foreground">Ações Hoje</p></CardContent></Card>
-                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pLeads.filter(l => l.sale_status !== 'none' && l.sale_status !== null).length}</p><p className="text-xs text-muted-foreground">Vendas</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pLeads.length}</p><p className="text-xs text-muted-foreground">{t('Leads')}</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pCountAction('scheduled_meeting')}</p><p className="text-xs text-muted-foreground">{t('Agendados')}</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pCountAction('meeting_done')}</p><p className="text-xs text-muted-foreground">{t('Reuniões')}</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pActions.length}</p><p className="text-xs text-muted-foreground">{t('Ações Hoje')}</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pWonInPeriod.length}</p><p className="text-xs text-muted-foreground">{t('Vendas')}</p></CardContent></Card>
                     </div>
                   </TabsContent>
                 );
