@@ -187,9 +187,6 @@ const translations = {
   'Coletar': { pt: 'Coletar', es: 'Recolectar' },
   'Mais informações': { pt: 'Mais informações', es: 'Más información' },
   'Enviar WhatsApp': { pt: 'Enviar WhatsApp', es: 'Enviar WhatsApp' },
-  'Insta': { pt: 'Insta', es: 'Insta' },
-  'Data': { pt: 'Data', es: 'Fecha' },
-  'Status': { pt: 'Status', es: 'Estado' },
 
   // ─── MyLeadsTab ────────────────────────────────────────────────────
   'Buscar nome, WhatsApp...': { pt: 'Buscar nome, WhatsApp...', es: 'Buscar nombre, WhatsApp...' },
