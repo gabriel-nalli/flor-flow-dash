@@ -215,6 +215,8 @@ const translations = {
   'Trocar Responsável': { pt: 'Trocar Responsável', es: 'Cambiar Responsable' },
   'Selecionar nova responsável': { pt: 'Selecionar nova responsável', es: 'Seleccionar nueva responsable' },
   'Confirmar Troca': { pt: 'Confirmar Troca', es: 'Confirmar Cambio' },
+  'Recuperar Lead': { pt: 'Recuperar Lead', es: 'Recuperar Lead' },
+  'Lead recuperado — voltou para Follow-up': { pt: 'Lead recuperado — voltou para Follow-up', es: 'Lead recuperado — volvió a Follow-up' },
 
   // ─── AliciaNewLeadDialog ────────────────────────────────────────────
   'Novo Lead — Alicia 🇪🇸': { pt: 'Novo Lead — Alicia 🇪🇸', es: 'Nuevo Lead — Alicia 🇪🇸' },

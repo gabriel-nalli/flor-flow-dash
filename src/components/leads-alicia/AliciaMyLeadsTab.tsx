@@ -100,8 +100,8 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
   };
 
   const handleStatusChange = async (lead: any, newStatus: string, actionType: string) => {
-    await updateLead(lead.id, { status: newStatus });
     await logAction(lead.id, actionType);
+    await updateLead(lead.id, { status: newStatus });
     toast.success(`Status → ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
   };
 
@@ -143,7 +143,9 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
 
   const filtered = leads.filter(lead => {
     if (search && !lead.nombre?.toLowerCase().includes(search.toLowerCase()) && !lead.whatsapp?.includes(search)) return false;
-    if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
+    if (stageFilter === 'perdido') {
+      if (lead.status !== 'perdido') return false;
+    } else if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
     if (isAdmin && sellerFilter !== 'all' && lead.assigned_to !== sellerFilter) return false;
     if (tagFilter !== 'all' && lead.source_tag !== tagFilter) return false;
     if (dateFilter && lead.created_at) {
@@ -174,6 +176,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                 <SelectItem value="followup_done">{t('Follow-up feito')}</SelectItem>
                 <SelectItem value="sale_won_call">{t('Venda na Call')}</SelectItem>
                 <SelectItem value="sale_won_followup">{t('Venda no Follow-up')}</SelectItem>
+                <SelectItem value="perdido">{t('Perdido')}</SelectItem>
               </SelectContent>
             </Select>
           </NeonSelectWrapper>
@@ -312,7 +315,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {lead.status === 'novo' && (
-                            <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'first_contact')}>
+                            <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'whatsapp_sent')}>
                               <MessageCircle className="w-4 h-4 mr-2" /> {t('Marcar 1º Contato Feito')}
                             </DropdownMenuItem>
                           )}
@@ -362,6 +365,18 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => { setLostDialogLead(lead); setLostDialogOpen(true); }} className="text-destructive">
                                 <XCircle className="w-4 h-4 mr-2" /> {t('Lead Perdido')}
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {lead.status === 'perdido' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={async () => {
+                                await updateLead(lead.id, { status: 'follow_up', sale_status: 'none' });
+                                await logAction(lead.id, 'lead_recovered');
+                                toast.success(t('Lead recuperado — voltou para Follow-up'));
+                              }} className="text-emerald-500">
+                                <Undo2 className="w-4 h-4 mr-2" /> {t('Recuperar Lead')}
                               </DropdownMenuItem>
                             </>
                           )}
