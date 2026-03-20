@@ -132,47 +132,50 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{t('Registrar Venda 🎉')}</DialogTitle>
           <p className="text-sm text-muted-foreground">Lead: <span className="font-medium text-foreground">{leadName}</span></p>
         </DialogHeader>
 
-        <div className="space-y-4 py-2">
-          {/* Valor Bruto */}
-          <div className="space-y-2">
-            <Label htmlFor="sale-value">{t('Valor da Venda (Bruto)')}</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-              <Input
-                id="sale-value"
-                placeholder="0"
-                value={formatCurrency(saleValue)}
-                onChange={e => setSaleValue(e.target.value)}
-                className="pl-10"
-              />
+        <div className="space-y-3 py-1">
+          {/* Valores em mesma linha */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Valor Bruto */}
+            <div className="space-y-1.5">
+              <Label htmlFor="sale-value" className="text-xs">{t('Valor da Venda (Bruto)')}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                <Input
+                  id="sale-value"
+                  placeholder="0"
+                  value={formatCurrency(saleValue)}
+                  onChange={e => setSaleValue(e.target.value)}
+                  className="pl-8 h-9 text-sm"
+                />
+              </div>
             </div>
-          </div>
 
-          {/* Cash-in */}
-          <div className="space-y-2">
-            <Label htmlFor="cash-value">{t('Valor em Cash-in (Líquido recebido)')}</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-              <Input
-                id="cash-value"
-                placeholder="0"
-                value={formatCurrency(cashValue)}
-                onChange={e => setCashValue(e.target.value)}
-                className="pl-10"
-              />
+            {/* Cash-in */}
+            <div className="space-y-1.5">
+              <Label htmlFor="cash-value" className="text-xs">{t('Valor em Cash-in (Líquido)')}</Label>
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                <Input
+                  id="cash-value"
+                  placeholder="0"
+                  value={formatCurrency(cashValue)}
+                  onChange={e => setCashValue(e.target.value)}
+                  className="pl-8 h-9 text-sm"
+                />
+              </div>
             </div>
           </div>
 
           {/* Método de Pagamento */}
-          <div className="space-y-2">
-            <Label>{t('Método de Pagamento')}</Label>
-            <div className="flex flex-wrap gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs">{t('Método de Pagamento')}</Label>
+            <div className="flex flex-wrap gap-2">
               {PAYMENT_METHODS.map(pm => {
                 const selected = paymentMethod === pm.id;
                 return (
@@ -186,16 +189,16 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                         setBoletoParcelado('');
                       }
                     }}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border text-sm font-medium transition-all
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all
                       ${selected
                         ? 'border-primary bg-primary/10 text-primary shadow-[0_0_8px_hsl(var(--primary)/0.3)]'
                         : 'border-border bg-muted/30 text-muted-foreground hover:border-primary/50 hover:text-foreground'
                       }`}
                   >
-                    <div className={`w-4 h-4 rounded flex items-center justify-center border-2 transition-all ${selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
-                      {selected && <div className="w-1.5 h-1.5 rounded-sm bg-primary-foreground" />}
+                    <div className={`w-3 h-3 rounded-sm flex items-center justify-center border transition-all ${selected ? 'bg-primary border-primary' : 'border-muted-foreground/40'}`}>
+                      {selected && <div className="w-1 h-1 rounded-sm bg-primary-foreground" />}
                     </div>
-                    {pm.id === 'hubla_boleto' && <Split className="w-3.5 h-3.5" />}
+                    {pm.id === 'hubla_boleto' && <Split className="w-3 h-3" />}
                     {pm.label}
                   </button>
                 );
@@ -204,37 +207,39 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
 
             {/* Campos extras para HUBLA + Boleto */}
             {paymentMethod === 'hubla_boleto' && (
-              <div className="mt-3 p-3 rounded-xl border border-primary/30 bg-primary/5 space-y-3">
-                <p className="text-xs text-primary font-semibold uppercase tracking-wide flex items-center gap-1.5">
+              <div className="mt-2 p-2.5 rounded-lg border border-primary/30 bg-primary/5 space-y-2">
+                <p className="text-[10px] text-primary font-bold uppercase tracking-wide flex items-center gap-1.5">
                   <Split className="w-3 h-3" />
                   {t('Detalhes HUBLA + Boleto')}
                 </p>
-                {/* Valor entrada Hubla */}
-                <div className="space-y-1">
-                  <Label htmlFor="hubla-entrada" className="text-xs">{t('Valor da entrada (HUBLA à vista)')}</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                    <Input
-                      id="hubla-entrada"
-                      placeholder="0"
-                      value={formatCurrency(hublaEntrada)}
-                      onChange={e => setHublaEntrada(e.target.value)}
-                      className="pl-10"
-                    />
+                <div className="grid grid-cols-2 gap-3">
+                  {/* Valor entrada Hubla */}
+                  <div className="space-y-1">
+                    <Label htmlFor="hubla-entrada" className="text-[10px] leading-tight">{t('Sinal (HUBLA)')}</Label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                      <Input
+                        id="hubla-entrada"
+                        placeholder="0"
+                        value={formatCurrency(hublaEntrada)}
+                        onChange={e => setHublaEntrada(e.target.value)}
+                        className="pl-7 h-8 text-xs"
+                      />
+                    </div>
                   </div>
-                </div>
-                {/* Valor parcelado Boleto */}
-                <div className="space-y-1">
-                  <Label htmlFor="boleto-parcelado" className="text-xs">{t('Valor parcelado no Boleto')}</Label>
-                  <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">R$</span>
-                    <Input
-                      id="boleto-parcelado"
-                      placeholder="0"
-                      value={formatCurrency(boletoParcelado)}
-                      onChange={e => setBoletoParcelado(e.target.value)}
-                      className="pl-10"
-                    />
+                  {/* Valor parcelado Boleto */}
+                  <div className="space-y-1">
+                    <Label htmlFor="boleto-parcelado" className="text-[10px] leading-tight">{t('Parcelado (Boleto)')}</Label>
+                    <div className="relative">
+                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">R$</span>
+                      <Input
+                        id="boleto-parcelado"
+                        placeholder="0"
+                        value={formatCurrency(boletoParcelado)}
+                        onChange={e => setBoletoParcelado(e.target.value)}
+                        className="pl-7 h-8 text-xs"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -242,12 +247,12 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
           </div>
 
           {/* Comprovante */}
-          <div className="space-y-2">
-            <Label>{t('Comprovante de Pagamento')}</Label>
+          <div className="space-y-1.5">
+            <Label className="text-xs">{t('Comprovante')}</Label>
 
             {!comprovanteFile ? (
               <div
-                className={`relative border-2 border-dashed rounded-xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer transition-all
+                className={`relative border-2 border-dashed rounded-lg p-3.5 flex flex-col items-center justify-center gap-1.5 cursor-pointer transition-all
                   ${dragging
                     ? 'border-primary bg-primary/10'
                     : 'border-muted-foreground/30 hover:border-primary/50 hover:bg-muted/30'
@@ -257,9 +262,9 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                 onDragLeave={() => setDragging(false)}
                 onDrop={handleDrop}
               >
-                <Upload className="w-7 h-7 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">{t('Clique ou arraste o arquivo aqui')}</p>
-                <p className="text-xs text-muted-foreground">JPG, PNG, WEBP ou PDF • Máx. 10MB</p>
+                <Upload className="w-5 h-5 text-muted-foreground" />
+                <p className="text-xs font-medium text-foreground">{t('Clique ou arraste o arquivo aqui')}</p>
+                <p className="text-[10px] text-muted-foreground">JPG, PNG, WEBP ou PDF</p>
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -269,41 +274,31 @@ export function SaleDialog({ open, onOpenChange, onConfirm, leadName }: SaleDial
                 />
               </div>
             ) : (
-              <div className="border border-border rounded-xl overflow-hidden">
-                {isImage && previewUrl && (
-                  <img src={previewUrl} alt="Comprovante" className="w-full max-h-48 object-contain bg-muted/30" />
-                )}
-                {!isImage && (
-                  <div className="flex items-center gap-3 px-4 py-3 bg-muted/30">
-                    <div className="p-2 rounded-lg bg-red-500/10">
-                      <FileText className="w-6 h-6 text-red-500" />
+              <div className="border border-border rounded-lg overflow-hidden flex items-center justify-between pr-2">
+                <div className="flex bg-muted/20 w-full">
+                  {isImage && previewUrl ? (
+                    <img src={previewUrl} alt="Comprovante" className="w-12 h-12 object-cover bg-muted/30 mr-2" />
+                  ) : (
+                    <div className="w-12 h-12 flex items-center justify-center bg-red-500/10 mr-2">
+                      <FileText className="w-5 h-5 text-red-500" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{comprovanteFile.name}</p>
-                      <p className="text-xs text-muted-foreground">PDF • {(comprovanteFile.size / 1024).toFixed(0)} KB</p>
-                    </div>
+                  )}
+                  <div className="flex-1 min-w-0 flex flex-col justify-center py-1">
+                    <p className="text-xs font-medium truncate">{comprovanteFile.name}</p>
+                    <p className="text-[10px] text-muted-foreground">{(comprovanteFile.size / 1024).toFixed(0)} KB</p>
                   </div>
-                )}
-                {isImage && (
-                  <div className="flex items-center gap-2 px-3 py-2 bg-muted/20">
-                    <ImageIcon className="w-4 h-4 text-muted-foreground shrink-0" />
-                    <span className="text-xs text-muted-foreground flex-1 truncate">{comprovanteFile.name}</span>
-                  </div>
-                )}
-                <div className="px-3 py-2 border-t border-border flex justify-end">
-                  <button onClick={handleRemove} className="flex items-center gap-1.5 text-xs text-destructive hover:text-destructive/80 transition-colors">
-                    <X className="w-3.5 h-3.5" />
-                    {t('Remover arquivo')}
-                  </button>
                 </div>
+                <button onClick={handleRemove} className="p-1.5 text-muted-foreground hover:text-destructive transition-colors shrink-0 bg-background rounded-md ml-2 border">
+                  <X className="w-3.5 h-3.5" />
+                </button>
               </div>
             )}
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>{t('Cancelar')}</Button>
-          <Button onClick={handleConfirm} disabled={!saleValue}>{t('Confirmar Venda')}</Button>
+        <DialogFooter className="pt-2">
+          <Button variant="outline" size="sm" onClick={() => onOpenChange(false)} className="h-8 text-xs">{t('Cancelar')}</Button>
+          <Button size="sm" onClick={handleConfirm} disabled={!saleValue} className="h-8 text-xs">{t('Confirmar')}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
