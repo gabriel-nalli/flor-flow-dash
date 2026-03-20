@@ -5,7 +5,7 @@ import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
-import { WHATSAPP_TEMPLATE } from '@/lib/constants';
+import { WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -100,7 +100,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   };
 
   const handleWhatsApp = async (lead: any) => {
-    const msg = WHATSAPP_TEMPLATE.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
+    const msg = WHATSAPP_TEMPLATE_THAYLOR.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
     const phone = lead.whatsapp?.replace(/\D/g, '') || '';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };

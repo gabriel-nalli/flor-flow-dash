@@ -10,7 +10,7 @@ import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
 import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck } from 'lucide-react';
-import { STATUS_CONFIG } from '@/lib/constants';
+import { STATUS_CONFIG, WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO, format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -78,8 +78,9 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
   };
 
   const handleWhatsApp = async (lead: any) => {
+    const msg = WHATSAPP_TEMPLATE_ALICIA.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
     const phone = lead.whatsapp?.replace(/\D/g, '') || '';
-    window.open(`https://wa.me/${phone}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     await logAction(lead.id, 'whatsapp_sent');
     if (lead.status === 'novo') {
       await updateLead(lead.id, { status: 'contato_1_feito' });

@@ -13,7 +13,7 @@ import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
 
 import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck } from 'lucide-react';
-import { STATUS_CONFIG, WHATSAPP_TEMPLATE } from '@/lib/constants';
+import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO } from 'date-fns';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -106,7 +106,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   };
 
   const handleWhatsApp = async (lead: any) => {
-    const msg = WHATSAPP_TEMPLATE.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
+    const msg = WHATSAPP_TEMPLATE_THAYLOR.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
     const phone = lead.whatsapp?.replace(/\D/g, '') || '';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
     await logAction(lead.id, 'whatsapp_sent');

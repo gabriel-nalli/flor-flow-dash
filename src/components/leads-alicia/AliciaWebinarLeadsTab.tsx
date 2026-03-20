@@ -12,6 +12,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 
 interface AliciaWebinarLeadsTabProps {
   leads: any[];
@@ -74,8 +75,9 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
   };
 
   const handleWhatsApp = async (lead: any) => {
+    const msg = WHATSAPP_TEMPLATE_ALICIA.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
     const phone = lead.whatsapp?.replace(/\D/g, '') || '';
-    window.open(`https://wa.me/${phone}`, '_blank');
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const clearFilters = () => {

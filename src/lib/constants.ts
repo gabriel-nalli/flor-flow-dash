@@ -14,7 +14,13 @@ export const STATUS_CONFIG: Record<string, { label: string; className: string }>
   perdido: { label: 'Perdido', className: 'bg-gray-100 text-gray-500 border-gray-200' },
 };
 
-export const WHATSAPP_TEMPLATE = `Oi amiga! tudo bem? Aqui é a {NOME_DA_VENDEDORA} sou da equipe da Mariana Santiago e do Thaylor.
+export const WHATSAPP_TEMPLATE_THAYLOR = `Oi amiga! tudo bem? Aqui é a {NOME_DA_VENDEDORA} sou da equipe do Thaylor.
+
+Estou te chamando aqui pq voce preencheu o formulario e ganhou uma consultoria individual! 
+
+Vamos agendar sua reuniao online?`;
+
+export const WHATSAPP_TEMPLATE_ALICIA = `Oi amiga! tudo bem? Aqui é a {NOME_DA_VENDEDORA} sou da equipe da Alicia.
 
 Estou te chamando aqui pq voce preencheu o formulario e ganhou uma consultoria individual! 
 
