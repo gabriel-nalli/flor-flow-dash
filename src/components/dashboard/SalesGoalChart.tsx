@@ -114,7 +114,10 @@ interface SalesGoalChartProps {
 
 export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSellerChange }: SalesGoalChartProps) {
   const GOAL = isAdmin ? ADMIN_GOAL : SELLER_GOAL;
-  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date())
+  });
   const { t } = useLanguage();
 
   const isThisMonthActive =

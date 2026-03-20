@@ -129,8 +129,8 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   };
 
   const handleStatusChange = async (lead: any, newStatus: string, actionType: string) => {
-    await updateLead(lead.id, { status: newStatus });
     await logAction(lead.id, actionType);
+    await updateLead(lead.id, { status: newStatus });
     toast.success(`Status → ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
   };
 
@@ -170,9 +170,54 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
     setSaleDialogOpen(false); setSaleDialogLead(null);
   };
 
+  const getDerivedActions = (lead: any, originalActions: string[]) => {
+    const s = new Set(originalActions);
+    if (lead.status === 'contato_1_feito') s.add('whatsapp_sent');
+    if (lead.status === 'nao_respondeu_d0' || lead.status === 'nao_respondeu_d1') {
+      s.add('whatsapp_sent');
+      s.add('no_response');
+    }
+    if (lead.status === 'agendado') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+    }
+    if (lead.status === 'no_show') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+      s.add('no_show_marked');
+    }
+    if (lead.status === 'reuniao_realizada') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+      s.add('meeting_done');
+    }
+    if (lead.status === 'proposta_enviada' || lead.status === 'aguardando_decisao' || lead.status === 'follow_up') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+      s.add('meeting_done');
+      s.add('followup_done');
+    }
+    if (lead.sale_status === 'won_call') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+      s.add('meeting_done');
+      s.add('sale_won_call');
+    }
+    if (lead.sale_status === 'won_followup') {
+      s.add('whatsapp_sent');
+      s.add('scheduled_meeting');
+      s.add('meeting_done');
+      s.add('followup_done');
+      s.add('sale_won_followup');
+    }
+    return Array.from(s);
+  };
+
   const filtered = leads.filter(lead => {
     if (search && !lead.nome?.toLowerCase().includes(search.toLowerCase()) && !lead.whatsapp?.includes(search)) return false;
-    if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
+    if (stageFilter === 'perdido') {
+      if (lead.status !== 'perdido') return false;
+    } else if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
     if (isAdmin && sellerFilter !== 'all' && lead.assigned_to !== sellerFilter) return false;
     if (tagFilter !== 'all' && lead.webinar_date_tag !== tagFilter) return false;
     if (mqlOnly && !isMql(lead.faturamento)) return false;
@@ -227,6 +272,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                 <SelectItem value="followup_done">{t('Follow-up feito')}</SelectItem>
                 <SelectItem value="sale_won_call">{t('Venda na Call')}</SelectItem>
                 <SelectItem value="sale_won_followup">{t('Venda no Follow-up')}</SelectItem>
+                <SelectItem value="perdido">{t('Perdido')}</SelectItem>
               </SelectContent>
             </Select>
           </NeonSelectWrapper>
@@ -379,7 +425,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                     </span>
                   </td>
                   <td className="px-4 py-4"><NeonStatusBadge status={lead.status} /></td>
-                  <td className="px-4 py-4"><LeadPipelineStages completedActions={actionsByLead[lead.id] || []} /></td>
+                  <td className="px-4 py-4"><LeadPipelineStages completedActions={getDerivedActions(lead, actionsByLead[lead.id] || [])} /></td>
                   {isAdmin && (
                     <td className="px-4 py-4 text-sm text-muted-foreground">
                       {lead.assigned_to ? profileMap[lead.assigned_to] || '—' : '—'}
@@ -407,7 +453,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           {lead.status === 'novo' && (
-                            <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'first_contact')}>
+                            <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'whatsapp_sent')}>
                               <MessageCircle className="w-4 h-4 mr-2" /> {t('Marcar 1º Contato Feito')}
                             </DropdownMenuItem>
                           )}
@@ -457,6 +503,18 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                               <DropdownMenuSeparator />
                               <DropdownMenuItem onClick={() => { setLostDialogLead(lead); setLostDialogOpen(true); }} className="text-destructive">
                                 <XCircle className="w-4 h-4 mr-2" /> {t('Lead Perdido')}
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {lead.status === 'perdido' && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={async () => {
+                                await updateLead(lead.id, { status: 'follow_up', sale_status: 'none' });
+                                await logAction(lead.id, 'lead_recovered');
+                                toast.success(t('Lead recuperado — voltou para Follow-up'));
+                              }} className="text-emerald-500">
+                                <Undo2 className="w-4 h-4 mr-2" /> {t('Recuperar Lead')}
                               </DropdownMenuItem>
                             </>
                           )}
