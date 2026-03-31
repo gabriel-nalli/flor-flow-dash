@@ -39,19 +39,19 @@ export default function ResetPassword() {
       setError('As senhas não coincidem');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
-    
+
     const { error } = await updatePassword(password);
-    
+
     if (error) {
       setError('Erro ao atualizar a senha. O link pode ter expirado.');
     } else {
       toast.success('Senha atualizada com sucesso!');
       navigate('/');
     }
-    
+
     setIsLoading(false);
   };
 
@@ -67,24 +67,24 @@ export default function ResetPassword() {
           <form onSubmit={handleUpdatePassword} className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label htmlFor="password">Nova Senha</Label>
-              <Input 
-                id="password" 
-                type="password" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                required 
-                placeholder="Mínimo 6 caracteres" 
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                placeholder="Mínimo 6 caracteres"
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
-              <Input 
-                id="confirm-password" 
-                type="password" 
-                value={confirmPassword} 
-                onChange={e => setConfirmPassword(e.target.value)} 
-                required 
-                placeholder="Confirme a nova senha" 
+              <Input
+                id="confirm-password"
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                required
+                placeholder="Confirme a nova senha"
               />
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
