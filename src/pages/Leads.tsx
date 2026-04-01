@@ -132,7 +132,7 @@ export default function Leads() {
           )}
           <button
             type="button"
-            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setNewLeadOpen(true); }}
+            onClick={() => setNewLeadOpen(true)}
             className="flex items-center gap-2 bg-foreground hover:bg-foreground/90 text-background px-4 py-2 rounded-lg transition-all text-sm font-bold"
           >
             <Plus size={14} />
