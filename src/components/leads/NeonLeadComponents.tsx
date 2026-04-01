@@ -90,11 +90,11 @@ export function NeonTableWrapper({ children }: { children: React.ReactNode }) {
 export function NeonPagination({ showing, total }: { showing: number; total: number }) {
   const { t } = useLanguage();
   return (
-    <div className="flex justify-between items-center px-6 py-4">
+    <div className="flex justify-between items-center px-4 md:px-6 py-3 md:py-4">
       <span className="text-muted-foreground text-xs">
         {t('Mostrando')} {showing} {t('de')} {total}
       </span>
-      <div className="flex items-center gap-1">
+      <div className="hidden md:flex items-center gap-1">
         <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">{t('Anterior')}</button>
         <button className="px-3 py-1.5 text-xs bg-muted text-foreground rounded-lg font-semibold">1</button>
         <button className="px-3 py-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors rounded-lg hover:bg-muted/50">2</button>

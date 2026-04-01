@@ -237,8 +237,8 @@ export default function WebinarFunnel() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <h1 className="text-3xl font-bold">Funil Webinário</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <h1 className="text-2xl md:text-3xl font-bold">Funil Webinário</h1>
         <div className="flex items-center gap-2">
           <Select value={selectedTag} onValueChange={handleTagChange}>
             <SelectTrigger className="w-[220px]"><SelectValue placeholder="Selecione o webinário" /></SelectTrigger>
@@ -315,7 +315,7 @@ export default function WebinarFunnel() {
       )}
 
       {/* KPI cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-3">
         {[
           { label: 'Entraram', value: attendees, icon: Users, color: 'hsl(200, 80%, 55%)' },
           { label: 'Até Pitch', value: stayedPitch, icon: Target, color: 'hsl(280, 70%, 60%)' },
@@ -362,9 +362,9 @@ export default function WebinarFunnel() {
                 const maxVal = Math.max(attendees, 1);
                 return (
                   <div key={index} className="relative group">
-                    <div className="flex items-center gap-4">
-                      <div className="w-28 text-right">
-                        <span className="text-muted-foreground text-sm font-medium group-hover:text-foreground transition-colors">
+                    <div className="flex items-center gap-2 md:gap-4">
+                      <div className="w-20 md:w-28 text-right">
+                        <span className="text-muted-foreground text-xs md:text-sm font-medium group-hover:text-foreground transition-colors">
                           {item.label}
                         </span>
                       </div>
@@ -404,10 +404,10 @@ export default function WebinarFunnel() {
               const strokeDashoffset = circumference - (mqlPct / 100) * circumference;
 
               return (
-                <div className="flex items-center justify-center gap-8 md:gap-16 relative z-10 py-4">
-                  <div className="text-right hidden md:block">
-                    <span className="text-muted-foreground font-medium text-sm block">Não MQL</span>
-                    <span className="text-2xl font-bold text-muted-foreground">{nonMqlPct}%</span>
+                <div className="flex items-center justify-center gap-4 md:gap-16 relative z-10 py-4">
+                  <div className="text-right">
+                    <span className="text-muted-foreground font-medium text-xs md:text-sm block">Não MQL</span>
+                    <span className="text-lg md:text-2xl font-bold text-muted-foreground">{nonMqlPct}%</span>
                   </div>
 
                   <div className="relative">
@@ -441,9 +441,9 @@ export default function WebinarFunnel() {
                     </svg>
                   </div>
 
-                  <div className="text-left hidden md:block">
-                    <span className="text-red-500 font-bold text-sm block" style={{ textShadow: '0 0 10px rgba(220, 38, 38, 0.4)' }}>MQL</span>
-                    <span className="text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]">{mqlPct}%</span>
+                  <div className="text-left">
+                    <span className="text-red-500 font-bold text-xs md:text-sm block" style={{ textShadow: '0 0 10px rgba(220, 38, 38, 0.4)' }}>MQL</span>
+                    <span className="text-lg md:text-2xl font-bold text-foreground drop-shadow-[0_0_8px_rgba(220,38,38,0.6)]">{mqlPct}%</span>
                   </div>
                 </div>
               );

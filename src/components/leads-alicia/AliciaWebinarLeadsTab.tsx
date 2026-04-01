@@ -89,8 +89,8 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
 
   return (
     <div>
-      <div className="px-6 py-5">
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+      <div className="px-4 md:px-6 py-4 md:py-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-3 mb-4">
           <NeonInput icon={Search} placeholder={t('Buscar nome...')} value={nameFilter} onChange={e => setNameFilter(e.target.value)} />
           <NeonInput icon={Instagram} placeholder={t('@usuario')} value={instaFilter} onChange={e => setInstaFilter(e.target.value)} />
           <NeonSelectWrapper>
@@ -149,8 +149,60 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
         </div>
       )}
 
+      {/* Mobile Card View */}
+      <div className="md:hidden px-4 space-y-3">
+        {isLoading ? (
+          <div className="text-center py-16 text-muted-foreground">{t('Carregando...')}</div>
+        ) : filtered.length === 0 ? (
+          <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</div>
+        ) : filtered.map(lead => (
+          <div key={lead.id} className="bg-secondary/50 rounded-xl p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3 min-w-0">
+                <LeadAvatar name={lead.nombre} />
+                <div className="min-w-0">
+                  <p className="font-medium text-foreground text-sm truncate">{lead.nombre}</p>
+                  {lead.instagram && (
+                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground">
+                      @{lead.instagram.replace(/^@/, '')}
+                    </a>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                {lead.whatsapp && (
+                  <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50">
+                    <MessageCircle size={18} className="text-green-500" />
+                  </button>
+                )}
+                {!lead.assigned_to && (
+                  <Button size="sm" onClick={() => handleCollect(lead)} disabled={collectingId === lead.id} className="gap-1 rounded-lg text-xs h-8">
+                    <CheckCircle size={14} />
+                    {collectingId === lead.id ? '...' : t('Coletar')}
+                  </Button>
+                )}
+              </div>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <NeonStatusBadge status={lead.status} />
+              {lead.facturacion_mensual && (
+                <span className="text-xs font-medium text-foreground bg-muted/50 px-2 py-0.5 rounded">{lead.facturacion_mensual}</span>
+              )}
+              {(lead.source_tag || lead.webinar_date_tag) && (
+                <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">{lead.source_tag || lead.webinar_date_tag}</span>
+              )}
+              {lead.created_at && (
+                <span className="text-xs text-muted-foreground">{format(parseISO(lead.created_at), "dd MMM", { locale: ptBR })}</span>
+              )}
+            </div>
+          </div>
+        ))}
+        <NeonPagination showing={filtered.length} total={leads.length} />
+      </div>
+
+      {/* Desktop Table View */}
       <NeonTableWrapper>
-        <table className="w-full">
+        <table className="w-full hidden md:table">
           <thead>
             <tr>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Nome')}</th>
@@ -261,7 +313,9 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
             ))}
           </tbody>
         </table>
-        <NeonPagination showing={filtered.length} total={leads.length} />
+        <div className="hidden md:block">
+          <NeonPagination showing={filtered.length} total={leads.length} />
+        </div>
       </NeonTableWrapper>
     </div>
   );

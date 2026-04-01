@@ -142,9 +142,9 @@ export function SalesFunnelChart({ leads, actions, isAdmin }: FunnelChartProps) 
         )}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
         {/* Main Column: Funnel Bars */}
-        <div className="lg:col-span-2 bg-card p-8 rounded-3xl relative overflow-hidden">
+        <div className="lg:col-span-2 bg-card p-4 md:p-8 rounded-2xl md:rounded-3xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-destructive/5 blur-[100px] pointer-events-none" />
 
           <div className="relative z-10 space-y-8">

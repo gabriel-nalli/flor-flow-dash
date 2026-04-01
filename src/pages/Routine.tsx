@@ -83,7 +83,7 @@ export default function Routine() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold">{t('Rotina Diária — Visão Geral')}</h1>
+            <h1 className="text-2xl md:text-3xl font-bold">{t('Rotina Diária — Visão Geral')}</h1>
             <p className="text-muted-foreground capitalize">{dateLabel}</p>
           </div>
           <DateFilter selectedDate={selectedDate} onDateChange={setSelectedDate} />
@@ -167,7 +167,7 @@ export default function Routine() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">{t('Rotina Diária')}</h1>
+          <h1 className="text-2xl md:text-3xl font-bold">{t('Rotina Diária')}</h1>
           <p className="text-muted-foreground">
             <span className="capitalize">{dateLabel}</span> — {selectedProfile.full_name} ({selectedProfile.role})
           </p>
@@ -271,12 +271,12 @@ function MemberRoutineCard({ name, roleLabel, completed, total, progress, groupe
                   <p className="text-xs text-muted-foreground">{roleLabel}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
                 <div className="text-right">
-                  <span className="text-sm font-bold tabular-nums">{completed}/{total}</span>
-                  <span className="text-xs text-muted-foreground ml-1">({Math.round(progress)}%)</span>
+                  <span className="text-xs md:text-sm font-bold tabular-nums">{completed}/{total}</span>
+                  <span className="text-[10px] md:text-xs text-muted-foreground ml-1">({Math.round(progress)}%)</span>
                 </div>
-                <div className="w-24">
+                <div className="w-16 md:w-24">
                   <Progress value={progress} className="h-2" />
                 </div>
                 <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${open ? 'rotate-180' : ''}`} />

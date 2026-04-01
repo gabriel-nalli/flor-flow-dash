@@ -13,25 +13,26 @@ import { isToday, parseISO, format, startOfDay, endOfDay, startOfWeek, endOfWeek
 
 function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value: number; icon: LucideIcon; color: string }) {
   return (
-    <div className="group relative bg-card p-6 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1">
+    <div className="group relative bg-card p-4 md:p-6 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1">
       <div
         className="absolute -top-10 -right-10 w-32 h-32 blur-[60px] opacity-0 group-hover:opacity-20 transition-opacity duration-500"
         style={{ backgroundColor: color }}
       />
       <div className="relative z-10 flex flex-col h-full justify-between">
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-muted/30 group-hover:bg-muted/50 transition-colors relative">
+        <div className="flex items-start justify-between mb-2 md:mb-4">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="p-2 md:p-2.5 rounded-xl bg-muted/30 group-hover:bg-muted/50 transition-colors relative">
               <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity blur-md" style={{ backgroundColor: color }} />
-              <Icon size={20} style={{ color, filter: `drop-shadow(0 0 8px ${color}66)` }} />
+              <Icon size={18} className="md:hidden" style={{ color, filter: `drop-shadow(0 0 8px ${color}66)` }} />
+              <Icon size={20} className="hidden md:block" style={{ color, filter: `drop-shadow(0 0 8px ${color}66)` }} />
             </div>
-            <span className="text-muted-foreground text-sm font-medium tracking-wide group-hover:text-foreground transition-colors">
+            <span className="text-muted-foreground text-xs md:text-sm font-medium tracking-wide group-hover:text-foreground transition-colors">
               {title}
             </span>
           </div>
         </div>
         <div className="flex items-end gap-2">
-          <span className="text-4xl font-black text-foreground tracking-tighter leading-none" style={{ textShadow: `0 0 20px ${color}33` }}>
+          <span className="text-2xl md:text-4xl font-black text-foreground tracking-tighter leading-none" style={{ textShadow: `0 0 20px ${color}33` }}>
             {value}
           </span>
         </div>
@@ -256,21 +257,21 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-4 md:space-y-8">
       {/* Neon Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
         <div>
-          <h1 className="text-3xl font-black text-foreground tracking-tight mb-1">{t('Dashboard')}</h1>
-          <p className="text-muted-foreground text-sm font-medium">
+          <h1 className="text-2xl md:text-3xl font-black text-foreground tracking-tight mb-1">{t('Dashboard')}</h1>
+          <p className="text-muted-foreground text-xs md:text-sm font-medium">
             {isGlobalAdminView ? t('Visão geral do time') : `Visão de ${selectedProfile.full_name}`}
           </p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 md:gap-3 flex-wrap w-full md:w-auto">
           {/* Filtro por período — visível para todos */}
-          <div className="flex items-center gap-2">
-            <Calendar size={14} className="text-muted-foreground" />
+          <div className="flex items-center gap-2 flex-1 md:flex-none">
+            <Calendar size={14} className="text-muted-foreground hidden md:block" />
             <Select value={dateFilter} onValueChange={setDateFilter}>
-              <SelectTrigger className="w-[180px] bg-card">
+              <SelectTrigger className="w-full md:w-[180px] bg-card">
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
@@ -283,10 +284,10 @@ export default function Dashboard() {
             </Select>
           </div>
           {isAdmin && (
-            <div className="flex items-center gap-2">
-              <Filter size={14} className="text-muted-foreground" />
+            <div className="flex items-center gap-2 flex-1 md:flex-none">
+              <Filter size={14} className="text-muted-foreground hidden md:block" />
               <Select value={segmentFilter} onValueChange={setSegmentFilter}>
-                <SelectTrigger className="w-[220px] bg-card">
+                <SelectTrigger className="w-full md:w-[220px] bg-card">
                   <SelectValue placeholder="Segmento" />
                 </SelectTrigger>
                 <SelectContent>
@@ -353,7 +354,7 @@ export default function Dashboard() {
       />
 
       {/* Neon KPI Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
         {metrics.map(m => (
           <NeonKPICard key={m.label} title={m.label} value={m.value} icon={m.icon} color={m.color} />
         ))}

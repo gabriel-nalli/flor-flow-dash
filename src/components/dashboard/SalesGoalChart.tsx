@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -24,12 +25,6 @@ interface NeonGaugeProps {
 }
 
 function NeonGauge({ percentage, label, subLabel, color, goalLabel }: NeonGaugeProps) {
-  const radius = 120;
-  const stroke = 15;
-  const normalizedRadius = radius - stroke * 2;
-  const circumference = normalizedRadius * 2 * Math.PI;
-  const strokeDashoffset = circumference - (percentage / 100) * circumference;
-
   const theme = {
     green: { primary: '#00ff9d', secondary: '#00cc7a' },
     purple: { primary: '#d946ef', secondary: '#c026d3' },
@@ -38,10 +33,44 @@ function NeonGauge({ percentage, label, subLabel, color, goalLabel }: NeonGaugeP
   return (
     <div className="flex flex-col items-center group cursor-default">
       <div className="relative flex items-center justify-center">
+        {/* Mobile gauge (smaller) */}
         <svg
-          height={radius * 2}
-          width={radius * 2}
-          className="transform -rotate-90 overflow-visible"
+          height={160}
+          width={160}
+          className="transform -rotate-90 overflow-visible md:hidden"
+        >
+          <defs>
+            <filter id={`neon-glow-${color}-sm`} x="-100%" y="-100%" width="400%" height="400%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          <circle stroke="hsl(var(--muted))" strokeWidth={12} fill="transparent" r={58} cx={80} cy={80} />
+          <circle
+            stroke={theme.primary}
+            fill="transparent"
+            strokeWidth={12}
+            strokeDasharray={`${58 * 2 * Math.PI} ${58 * 2 * Math.PI}`}
+            style={{
+              strokeDashoffset: 58 * 2 * Math.PI - (percentage / 100) * 58 * 2 * Math.PI,
+              transition: 'stroke-dashoffset 1.5s ease-out',
+              strokeLinecap: 'round',
+              filter: `url(#neon-glow-${color}-sm)`,
+            }}
+            r={58}
+            cx={80}
+            cy={80}
+          />
+        </svg>
+        {/* Desktop gauge */}
+        <svg
+          height={240}
+          width={240}
+          className="transform -rotate-90 overflow-visible hidden md:block"
         >
           <defs>
             <filter id={`neon-glow-${color}`} x="-100%" y="-100%" width="400%" height="400%">
@@ -54,45 +83,38 @@ function NeonGauge({ percentage, label, subLabel, color, goalLabel }: NeonGaugeP
               </feMerge>
             </filter>
           </defs>
-          <circle
-            stroke="hsl(var(--muted))"
-            strokeWidth={stroke}
-            fill="transparent"
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
-          />
+          <circle stroke="hsl(var(--muted))" strokeWidth={15} fill="transparent" r={90} cx={120} cy={120} />
           <circle
             stroke={theme.primary}
             fill="transparent"
-            strokeWidth={stroke}
-            strokeDasharray={circumference + ' ' + circumference}
+            strokeWidth={15}
+            strokeDasharray={`${90 * 2 * Math.PI} ${90 * 2 * Math.PI}`}
             style={{
-              strokeDashoffset,
+              strokeDashoffset: 90 * 2 * Math.PI - (percentage / 100) * 90 * 2 * Math.PI,
               transition: 'stroke-dashoffset 1.5s ease-out',
               strokeLinecap: 'round',
               filter: `url(#neon-glow-${color})`,
             }}
-            r={normalizedRadius}
-            cx={radius}
-            cy={radius}
+            r={90}
+            cx={120}
+            cy={120}
           />
         </svg>
-        <div className="absolute flex flex-col items-center justify-center space-y-1">
-          <span className="text-6xl font-black tracking-tighter text-foreground">
+        <div className="absolute flex flex-col items-center justify-center space-y-0.5 md:space-y-1">
+          <span className="text-3xl md:text-6xl font-black tracking-tighter text-foreground">
             {percentage}%
           </span>
-          <span className="text-sm text-muted-foreground font-bold uppercase tracking-widest opacity-80">
+          <span className="text-[10px] md:text-sm text-muted-foreground font-bold uppercase tracking-widest opacity-80">
             {goalLabel}
           </span>
         </div>
       </div>
-      <div className="mt-8 text-center">
-        <h3 className="text-muted-foreground text-sm font-bold uppercase tracking-[0.2em] mb-2">
+      <div className="mt-4 md:mt-8 text-center">
+        <h3 className="text-muted-foreground text-xs md:text-sm font-bold uppercase tracking-[0.2em] mb-1 md:mb-2">
           {label}
         </h3>
         <p
-          className="text-3xl font-bold tracking-tight"
+          className="text-xl md:text-3xl font-bold tracking-tight"
           style={{
             color: theme.primary,
             textShadow: `0 0 20px ${theme.primary}66`,
@@ -114,6 +136,7 @@ interface SalesGoalChartProps {
 
 export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSellerChange }: SalesGoalChartProps) {
   const GOAL = isAdmin ? ADMIN_GOAL : SELLER_GOAL;
+  const isMobile = useIsMobile();
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date())
@@ -193,8 +216,8 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-end flex-wrap gap-3">
-        <div className="flex flex-wrap items-center gap-3">
+      <CardHeader className="flex flex-row items-center justify-end flex-wrap gap-2 md:gap-3 px-3 md:px-6">
+        <div className="flex flex-wrap items-center gap-2 md:gap-3">
           {/* Botão "Este mês" */}
           <Button
             variant={isThisMonthActive ? 'default' : 'outline'}
@@ -226,7 +249,7 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
                 mode="range"
                 selected={dateRange}
                 onSelect={setDateRange}
-                numberOfMonths={2}
+                numberOfMonths={isMobile ? 1 : 2}
                 locale={ptBR}
                 initialFocus
               />
@@ -261,7 +284,7 @@ export function SalesGoalChart({ leads, isAdmin, selectedSellerId = 'all', onSel
         </div>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-col md:flex-row gap-16 items-center justify-center py-8">
+        <div className="flex flex-col md:flex-row gap-8 md:gap-16 items-center justify-center py-4 md:py-8">
           <NeonGauge
             percentage={pctBruto}
             label={t('Venda Bruta')}

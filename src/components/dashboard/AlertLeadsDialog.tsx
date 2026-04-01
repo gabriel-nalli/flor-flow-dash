@@ -28,51 +28,79 @@ export function AlertLeadsDialog({ title, leads, profileMap, open, onOpenChange,
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto mx-2 md:mx-auto">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{leads.length} lead{leads.length !== 1 ? 's' : ''}</DialogDescription>
         </DialogHeader>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>WhatsApp</TableHead>
-              <TableHead>Responsável</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>{dateLabel}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {leads.map(lead => {
-              const dateVal = getDate ? getDate(lead) : lead.created_at;
-              return (
-                <TableRow key={lead.id}>
-                  <TableCell className="font-medium">{lead.nome}</TableCell>
-                  <TableCell>
-                    {lead.whatsapp ? (
-                      <a
-                        href={`https://wa.me/${formatPhone(lead.whatsapp)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-primary hover:underline"
-                      >
-                        {lead.whatsapp}
-                      </a>
-                    ) : '—'}
-                  </TableCell>
-                  <TableCell>
-                    {lead.assigned_to ? (profileMap[lead.assigned_to] || 'Desconhecido') : 'Sem responsável'}
-                  </TableCell>
-                  <TableCell><StatusBadge status={lead.status || null} /></TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {dateVal ? format(parseISO(dateVal), 'dd/MM/yyyy') : '—'}
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
+
+        {/* Mobile card view */}
+        <div className="md:hidden space-y-3">
+          {leads.map(lead => {
+            const dateVal = getDate ? getDate(lead) : lead.created_at;
+            return (
+              <div key={lead.id} className="bg-muted/30 rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="font-medium text-sm">{lead.nome}</span>
+                  <StatusBadge status={lead.status || null} />
+                </div>
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <span>{lead.assigned_to ? (profileMap[lead.assigned_to] || 'Desconhecido') : 'Sem responsável'}</span>
+                  <span>{dateVal ? format(parseISO(dateVal), 'dd/MM/yyyy') : '—'}</span>
+                </div>
+                {lead.whatsapp && (
+                  <a href={`https://wa.me/${formatPhone(lead.whatsapp)}`} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">
+                    {lead.whatsapp}
+                  </a>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table view */}
+        <div className="hidden md:block">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Nome</TableHead>
+                <TableHead>WhatsApp</TableHead>
+                <TableHead>Responsável</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>{dateLabel}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {leads.map(lead => {
+                const dateVal = getDate ? getDate(lead) : lead.created_at;
+                return (
+                  <TableRow key={lead.id}>
+                    <TableCell className="font-medium">{lead.nome}</TableCell>
+                    <TableCell>
+                      {lead.whatsapp ? (
+                        <a
+                          href={`https://wa.me/${formatPhone(lead.whatsapp)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-primary hover:underline"
+                        >
+                          {lead.whatsapp}
+                        </a>
+                      ) : '—'}
+                    </TableCell>
+                    <TableCell>
+                      {lead.assigned_to ? (profileMap[lead.assigned_to] || 'Desconhecido') : 'Sem responsável'}
+                    </TableCell>
+                    <TableCell><StatusBadge status={lead.status || null} /></TableCell>
+                    <TableCell className="text-muted-foreground text-sm">
+                      {dateVal ? format(parseISO(dateVal), 'dd/MM/yyyy') : '—'}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </div>
       </DialogContent>
     </Dialog>
   );

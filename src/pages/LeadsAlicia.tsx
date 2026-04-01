@@ -108,7 +108,7 @@ export default function LeadsAlicia() {
           <button
             type="button"
             onClick={() => setActiveTab('meus')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'meus'
+            className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold transition-all relative flex-1 md:flex-none ${activeTab === 'meus'
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/70'
               }`}
@@ -121,7 +121,7 @@ export default function LeadsAlicia() {
           <button
             type="button"
             onClick={() => setActiveTab('webinar')}
-            className={`px-6 py-4 text-sm font-semibold transition-all relative ${activeTab === 'webinar'
+            className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold transition-all relative flex-1 md:flex-none ${activeTab === 'webinar'
                 ? 'text-foreground'
                 : 'text-muted-foreground hover:text-foreground/70'
               }`}

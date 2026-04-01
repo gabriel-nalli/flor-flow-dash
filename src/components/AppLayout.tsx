@@ -26,26 +26,26 @@ export default function AppLayout() {
     <SidebarProvider>
       <AppSidebar />
       <SidebarInset>
-        <header className="flex items-center gap-3 px-6 py-3 bg-background">
+        <header className="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-background sticky top-0 z-30">
           <SidebarTrigger />
           <div className="flex-1" />
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {/* Language Toggle */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLang(lang === 'pt' ? 'es' : 'pt')}
-              className="h-9 px-3 text-xs font-bold gap-1.5 text-muted-foreground hover:text-foreground"
+              className="h-8 md:h-9 px-2 md:px-3 text-xs font-bold gap-1 md:gap-1.5 text-muted-foreground hover:text-foreground"
               title={lang === 'pt' ? 'Cambiar a Español' : 'Mudar para Português'}
             >
               <span className="text-base">{lang === 'pt' ? '🇧🇷' : '🇪🇸'}</span>
-              {lang === 'pt' ? 'PT' : 'ES'}
+              <span className="hidden sm:inline">{lang === 'pt' ? 'PT' : 'ES'}</span>
             </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={signOut}
-              className="h-9 w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+              className="h-8 w-8 md:h-9 md:w-9 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
               title={t('Sair da conta')}
             >
               <LogOut className="w-4 h-4" />
@@ -54,12 +54,12 @@ export default function AppLayout() {
               variant="ghost"
               size="icon"
               onClick={() => setIsLight(!isLight)}
-              className="h-9 w-9"
+              className="h-8 w-8 md:h-9 md:w-9"
               title={isLight ? t('Modo escuro') : t('Modo claro')}
             >
               {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </Button>
-            <User className="w-4 h-4 text-muted-foreground" />
+            <User className="w-4 h-4 text-muted-foreground hidden sm:block" />
             {isAdmin ? (
               <Select
                 value={selectedProfile.id}
@@ -68,7 +68,7 @@ export default function AppLayout() {
                   if (profile) setSelectedProfile(profile);
                 }}
               >
-                <SelectTrigger className="w-[180px] h-9">
+                <SelectTrigger className="w-[120px] md:w-[180px] h-8 md:h-9 text-xs md:text-sm">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -80,13 +80,13 @@ export default function AppLayout() {
                 </SelectContent>
               </Select>
             ) : (
-              <span className="text-sm font-medium text-muted-foreground px-2">
+              <span className="text-xs md:text-sm font-medium text-muted-foreground px-1 md:px-2 truncate max-w-[100px] md:max-w-none">
                 {selectedProfile.full_name}
               </span>
             )}
           </div>
         </header>
-        <main className="p-4 md:p-6 overflow-auto">
+        <main className="p-3 md:p-6 overflow-auto">
           <Outlet />
         </main>
       </SidebarInset>

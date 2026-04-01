@@ -24,7 +24,7 @@ export default function SalesGoal() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">{t('Meta de Vendas')}</h1>
+        <h1 className="text-2xl md:text-3xl font-bold">{t('Meta de Vendas')}</h1>
         <p className="text-muted-foreground">
           {isAdmin ? t('Visão geral do time') : `Meta de ${selectedProfile.full_name}`}
         </p>
