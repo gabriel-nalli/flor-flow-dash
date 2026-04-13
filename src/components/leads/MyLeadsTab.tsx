@@ -9,10 +9,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
+import { EditLeadDialog } from '@/components/leads/EditLeadDialog';
 
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
 
-import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck } from 'lucide-react';
+import { MessageCircle, MoreVertical, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO } from 'date-fns';
@@ -46,6 +47,8 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [reassignLead, setReassignLead] = useState<any>(null);
   const [reassignTo, setReassignTo] = useState('');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editLead, setEditLead] = useState<any>(null);
 
   const profileMap = externalProfileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
   // Build sellers list from profileMap (real DB profiles) excluding admins
@@ -404,6 +407,9 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}>
+                      <Edit2 className="w-4 h-4 mr-2" /> {t('Editar Lead')}
+                    </DropdownMenuItem>
                     {lead.status === 'novo' && (
                       <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'whatsapp_sent')}>
                         <MessageCircle className="w-4 h-4 mr-2" /> {t('Marcar 1º Contato Feito')}
@@ -615,6 +621,9 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                           </button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}>
+                            <Edit2 className="w-4 h-4 mr-2" /> {t('Editar Lead')}
+                          </DropdownMenuItem>
                           {lead.status === 'novo' && (
                             <DropdownMenuItem onClick={() => handleStatusChange(lead, 'contato_1_feito', 'whatsapp_sent')}>
                               <MessageCircle className="w-4 h-4 mr-2" /> {t('Marcar 1º Contato Feito')}
@@ -805,6 +814,12 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
           setLostDialogOpen(false);
           setLostDialogLead(null);
         }}
+      />
+
+      <EditLeadDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        lead={editLead}
       />
     </div>
   );

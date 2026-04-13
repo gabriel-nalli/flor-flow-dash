@@ -4,13 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
 import { WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { EditLeadDialog } from '@/components/leads/EditLeadDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
 import { useLanguage } from '@/contexts/LanguageContext';
 
@@ -34,6 +35,8 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const [mqlOnly, setMqlOnly] = useState(false);
   const [revenueFilter, setRevenueFilter] = useState('all');
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [editLead, setEditLead] = useState<any>(null);
 
   const resolvedProfileMap = profileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
   const uniqueTags = Array.from(new Set(allLeads.map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse();
@@ -214,6 +217,13 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     <MessageCircle size={18} className="text-green-500" />
                   </button>
                 )}
+                <button
+                  onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}
+                  className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                  title={t('Editar Lead')}
+                >
+                  <Edit2 size={18} className="text-muted-foreground" />
+                </button>
                 {!lead.assigned_to && (
                   <Button
                     size="sm"
@@ -329,6 +339,13 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                           <MessageCircle size={16} className="text-muted-foreground hover:text-green-500" />
                         </button>
                       )}
+                      <button
+                        onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}
+                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
+                        title={t('Editar Lead')}
+                      >
+                        <Edit2 size={16} className="text-muted-foreground" />
+                      </button>
                       {!lead.assigned_to && (
                         <Button
                           size="sm"
@@ -375,6 +392,12 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
           <NeonPagination showing={filtered.length} total={leads.length} />
         </div>
       </NeonTableWrapper>
+
+      <EditLeadDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        lead={editLead}
+      />
     </div>
   );
 }
