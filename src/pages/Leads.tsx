@@ -1,22 +1,19 @@
 import { useState, useMemo } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, UserCheck, Download, Plus, Upload, X } from 'lucide-react';
+import { Users, UserCheck, Download, Plus } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
-import { ImportLeadsDialog } from '@/components/leads/ImportLeadsDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
 export default function Leads() {
   const { selectedProfile, isAdmin } = useProfileSelector();
-  const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
-  const [importLeadsOpen, setImportLeadsOpen] = useState(false);
 
   const { data: allLeads = [], isLoading } = useQuery({
     queryKey: ['leads'],
@@ -133,16 +130,6 @@ export default function Leads() {
               {t('Exportar')}
             </button>
           )}
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={() => setImportLeadsOpen(true)}
-              className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
-            >
-              <Upload size={14} />
-              {t('Importar')}
-            </button>
-          )}
           <button
             type="button"
             onClick={() => setNewLeadOpen(true)}
@@ -150,28 +137,6 @@ export default function Leads() {
           >
             <Plus size={14} />
             {t('Novo Lead')}
-          </button>
-          <button
-            type="button"
-            onClick={async () => {
-              if (confirm('Tem certeza que deseja deletar todos os leads da tag NOVO FORMS THAYLOR?')) {
-                const { error } = await supabase
-                  .from('leads')
-                  .delete()
-                  .eq('webinar_date_tag', 'NOVO FORMS THAYLOR');
-                
-                if (error) {
-                  toast.error('Erro ao deletar: ' + error.message);
-                } else {
-                  toast.success('Leads deletados com sucesso! ✅');
-                  queryClient.invalidateQueries({ queryKey: ['leads'] });
-                }
-              }
-            }}
-            className="flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 rounded-lg transition-all text-sm font-bold"
-          >
-            <X size={14} />
-            DELETAR IMPORTAÇÃO
           </button>
         </div>
       </div>
@@ -217,7 +182,6 @@ export default function Leads() {
       </div>
 
       <NewLeadDialog open={newLeadOpen} onOpenChange={setNewLeadOpen} />
-      <ImportLeadsDialog open={importLeadsOpen} onOpenChange={setImportLeadsOpen} />
     </div>
   );
 }
