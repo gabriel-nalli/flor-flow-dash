@@ -78,7 +78,7 @@ export default function Leads() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-xl md:text-2xl font-bold text-foreground mb-2">{t('Gerenciar Leads')}</h1>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-x-4 gap-y-1">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
               {t('Total:')} <span className="font-bold text-foreground">{totalLeads}</span>

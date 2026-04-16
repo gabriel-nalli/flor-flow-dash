@@ -86,7 +86,7 @@ export default function AppLayout() {
             )}
           </div>
         </header>
-        <main className="p-3 md:p-6 overflow-auto">
+        <main className="p-3 md:p-6 overflow-y-auto overflow-x-hidden">
           <Outlet />
         </main>
       </SidebarInset>
