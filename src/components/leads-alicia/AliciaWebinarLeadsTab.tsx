@@ -286,6 +286,14 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                     <td colSpan={7} className="px-6 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div>
+                          <span className="text-muted-foreground text-xs block mb-1">País</span>
+                          <span className="text-foreground">{lead.pais || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Área de Atividade</span>
+                          <span className="text-foreground">{lead.area_de_atividade || '—'}</span>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground text-xs block mb-1">Tiempo de experiencia</span>
                           <span className="text-foreground">{lead.tiempo_experiencia || '—'}</span>
                         </div>
@@ -304,6 +312,21 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                         <div>
                           <span className="text-muted-foreground text-xs block mb-1">Tiempo para resultados</span>
                           <span className="text-foreground">{lead.tiempo_resultados || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">WhatsApp Link</span>
+                          <span className="text-foreground">
+                            {lead.whatsapp ? (
+                              <a 
+                                href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary hover:underline flex items-center gap-1"
+                              >
+                                {lead.whatsapp} <ExternalLink size={12} />
+                              </a>
+                            ) : '—'}
+                          </span>
                         </div>
                       </div>
                     </td>

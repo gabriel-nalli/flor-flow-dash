@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
-import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck } from 'lucide-react';
+import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck, ExternalLink } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO, format } from 'date-fns';
@@ -507,6 +507,14 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                     <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4">
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                         <div>
+                          <span className="text-muted-foreground text-xs block mb-1">País</span>
+                          <span className="text-foreground">{lead.pais || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">Área de Atividade</span>
+                          <span className="text-foreground">{lead.area_de_atividade || '—'}</span>
+                        </div>
+                        <div>
                           <span className="text-muted-foreground text-xs block mb-1">Tiempo de experiencia</span>
                           <span className="text-foreground">{lead.tiempo_experiencia || '—'}</span>
                         </div>
@@ -525,6 +533,21 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                         <div>
                           <span className="text-muted-foreground text-xs block mb-1">Tiempo para resultados</span>
                           <span className="text-foreground">{lead.tiempo_resultados || '—'}</span>
+                        </div>
+                        <div>
+                          <span className="text-muted-foreground text-xs block mb-1">WhatsApp Link</span>
+                          <span className="text-foreground">
+                            {lead.whatsapp ? (
+                              <a 
+                                href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} 
+                                target="_blank" 
+                                rel="noopener noreferrer" 
+                                className="text-primary hover:underline flex items-center gap-1"
+                              >
+                                {lead.whatsapp} <ExternalLink size={12} />
+                              </a>
+                            ) : '—'}
+                          </span>
                         </div>
                       </div>
                     </td>
