@@ -227,9 +227,9 @@ export default function Dashboard() {
     { label: t('Reuniões'), value: reunioes, icon: Phone, color: '#3b82f6' },
     { label: t('Vendas'), value: vendas, icon: TrendingUp, color: '#22c55e' },
     { label: t('Follow-up Pendente'), value: followUpPendente, icon: AlertTriangle, color: '#eab308' },
-    { label: t('Tempo Médio Coleta'), value: responseTimeMetric.avg, icon: Clock, color: '#06b6d4' },
+    { label: t('Tempo Médio Coleta'), value: responseTimeMetric.avg, icon: Clock, color: '#06b6d4', adminOnly: true },
     { label: t('Total Leads'), value: visibleLeads.length, icon: CheckCircle2, color: '#9ca3af' },
-  ];
+  ].filter(m => !m.adminOnly || isAdmin);
 
   // Usa os perfis REAIS do banco limpando testes e duplicados
   const realTeamMembers = useMemo(() => {
