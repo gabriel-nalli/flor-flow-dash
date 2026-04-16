@@ -251,11 +251,11 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                   )}
                 </span>
               )}
-              {lead.created_at && (
-                <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
-                  {format(parseISO(lead.created_at), "dd MMM", { locale: ptBR })}
-                </span>
-              )}
+                  {lead.created_at && (
+                    <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full whitespace-nowrap">
+                      {format(parseISO(lead.created_at), "dd MMM · HH:mm", { locale: ptBR })}
+                    </span>
+                  )}
             </div>
 
             {/* Footer: actions */}
@@ -379,7 +379,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     {lead.valor_investimento || '—'}
                   </td>
                   <td className="px-4 py-4 text-sm text-muted-foreground">
-                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM", { locale: ptBR }) : '—'}
+                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM · HH:mm", { locale: ptBR }) : '—'}
                   </td>
                   <td className="px-4 py-4">
                     <NeonStatusBadge status={lead.status} />
