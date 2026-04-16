@@ -25,7 +25,7 @@ export default function AppLayout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-      <SidebarInset>
+      <SidebarInset className="overflow-x-hidden">
         <header className="flex items-center gap-2 md:gap-3 px-3 md:px-6 py-2 md:py-3 bg-background sticky top-0 z-30">
           <SidebarTrigger />
           <div className="flex-1" />
