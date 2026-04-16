@@ -393,7 +393,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                         href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-muted-foreground hover:text-foreground"
+                        className="text-xs text-muted-foreground hover:text-foreground truncate block max-w-[120px]"
                       >
                         @{lead.instagram.replace(/^@/, '')}
                       </a>

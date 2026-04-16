@@ -208,7 +208,12 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate">{lead.nome}</p>
                   {lead.instagram && (
-                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <a 
+                      href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      className="text-xs text-muted-foreground hover:text-foreground transition-colors block truncate pr-2"
+                    >
                       @{lead.instagram.replace(/^@/, '')}
                     </a>
                   )}
@@ -220,9 +225,6 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     <MessageCircle size={18} className="text-green-500" />
                   </button>
                 )}
-                <button onClick={() => { setEditLead(lead); setEditDialogOpen(true); }} className="p-2 rounded-xl hover:bg-muted/50 transition-colors">
-                  <Edit2 size={18} className="text-muted-foreground" />
-                </button>
                 {!lead.assigned_to && (
                   <Button size="sm" onClick={() => handleCollect(lead)} disabled={collectingId === lead.id} className="gap-1 rounded-xl text-xs h-8">
                     <CheckCircle size={14} />
@@ -256,8 +258,17 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
               )}
             </div>
 
-            {/* Footer: expand */}
-            <div className="flex items-center justify-end px-4 py-2.5 bg-muted/20">
+            {/* Footer: actions */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
+              <button 
+                onClick={() => { setEditLead(lead); setEditDialogOpen(true); }} 
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                title={t('Editar Lead')}
+              >
+                <Edit2 size={13} />
+                {t('Editar')}
+              </button>
+              
               <button
                 onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"

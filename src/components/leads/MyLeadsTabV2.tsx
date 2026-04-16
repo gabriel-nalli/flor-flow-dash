@@ -374,7 +374,7 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate">{lead.nome}</p>
                   {lead.instagram && (
-                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors block truncate max-w-[120px]">
                       @{lead.instagram.replace(/^@/, '')}
                     </a>
                   )}
