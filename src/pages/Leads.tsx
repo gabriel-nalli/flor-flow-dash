@@ -5,7 +5,7 @@ import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, UserCheck, Download, Plus } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
-import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
+import { MyLeadsTabV2 } from '@/components/leads/MyLeadsTabV2';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
@@ -173,7 +173,7 @@ export default function Leads() {
 
         <div>
           {activeTab === 'meus' && (
-            <MyLeadsTab leads={myLeads} isLoading={isLoading} actionsByLead={actionsByLead} allLeads={allLeads} profileMap={profileMap} />
+            <MyLeadsTabV2 leads={myLeads} isLoading={isLoading} actionsByLead={actionsByLead} allLeads={allLeads} profileMap={profileMap} />
           )}
           {activeTab === 'webinar' && (
             <WebinarLeadsTab leads={webinarLeads} isLoading={isLoading} allLeads={allLeads} profileMap={profileMap} />
