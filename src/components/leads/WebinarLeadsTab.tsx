@@ -200,7 +200,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</div>
         ) : filtered.map(lead => (
-          <div key={lead.id} className="bg-card rounded-2xl overflow-hidden shadow-sm">
+          <div key={lead.id} className="bg-secondary/50 rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
               <div className="flex items-center gap-3 min-w-0">
