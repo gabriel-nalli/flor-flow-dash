@@ -187,6 +187,11 @@ export default function Dashboard() {
     const durations = collectionActions.map(action => {
       const lead = leads.find(l => l.id === action.lead_id);
       if (!lead?.created_at || !action.created_at) return null;
+      
+      // Data de corte: 16/04/2026 às 19:00 (UTC-3) correspondente a 2026-04-16T22:00:00Z
+      const cutoff = new Date('2026-04-16T19:00:00-03:00');
+      if (new Date(lead.created_at) < cutoff) return null;
+
       const diff = new Date(action.created_at).getTime() - new Date(lead.created_at).getTime();
       return diff > 0 ? diff : null;
     }).filter((d): d is number => d !== null);
