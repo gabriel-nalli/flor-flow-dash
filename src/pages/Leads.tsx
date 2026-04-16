@@ -3,10 +3,11 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, UserCheck, Download, Plus } from 'lucide-react';
+import { Users, UserCheck, Download, Plus, Upload } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
+import { ImportLeadsDialog } from '@/components/leads/ImportLeadsDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
 export default function Leads() {
@@ -14,6 +15,7 @@ export default function Leads() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
+  const [importLeadsOpen, setImportLeadsOpen] = useState(false);
 
   const { data: allLeads = [], isLoading } = useQuery({
     queryKey: ['leads'],
@@ -121,13 +123,23 @@ export default function Leads() {
                 const a = document.createElement('a');
                 a.href = url;
                 a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
-                a.click();
+                window.open(url, '_blank');
                 URL.revokeObjectURL(url);
               }}
               className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
             >
               <Download size={14} />
               {t('Exportar')}
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => setImportLeadsOpen(true)}
+              className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
+            >
+              <Upload size={14} />
+              {t('Importar')}
             </button>
           )}
           <button
@@ -182,6 +194,7 @@ export default function Leads() {
       </div>
 
       <NewLeadDialog open={newLeadOpen} onOpenChange={setNewLeadOpen} />
+      <ImportLeadsDialog open={importLeadsOpen} onOpenChange={setImportLeadsOpen} />
     </div>
   );
 }
