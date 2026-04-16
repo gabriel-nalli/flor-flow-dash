@@ -164,7 +164,7 @@ export default function Leads() {
                 : 'text-muted-foreground hover:text-foreground/70'
               }`}
           >
-            {t('Leads Webinar')}
+            {t('Leads Disponíveis')}
             {activeTab === 'webinar' && (
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}

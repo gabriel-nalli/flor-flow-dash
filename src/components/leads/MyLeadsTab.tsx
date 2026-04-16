@@ -489,7 +489,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                         <DropdownMenuItem onClick={async () => {
                           await updateLead(lead.id, { assigned_to: null, status: 'novo' });
                           await logAction(lead.id, 'uncollected');
-                          toast.success('Lead descoletado — voltou para Leads Webinar');
+                          toast.success('Lead descoletado — voltou para Leads Disponíveis');
                         }} className="text-warning">
                           <Undo2 className="w-4 h-4 mr-2" /> {t('Descoletar Lead')}
                         </DropdownMenuItem>
@@ -715,7 +715,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                               <DropdownMenuItem onClick={async () => {
                                 await updateLead(lead.id, { assigned_to: null, status: 'novo' });
                                 await logAction(lead.id, 'uncollected');
-                                toast.success('Lead descoletado — voltou para Leads Webinar');
+                                toast.success('Lead descoletado — voltou para Leads Disponíveis');
                               }} className="text-warning">
                                 <Undo2 className="w-4 h-4 mr-2" /> {t('Descoletar Lead')}
                               </DropdownMenuItem>
