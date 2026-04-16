@@ -16,7 +16,7 @@ export default function Leads() {
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
 
-  // Query Thaylor leads (table 'leads')
+  // Query Thaylor leads
   const { data: allLeads = [], isLoading: thaylorLoading } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
@@ -25,7 +25,7 @@ export default function Leads() {
     },
   });
 
-  // Query Alicia leads (table 'leads_alicia')
+  // Query Alicia leads
   const { data: aliciaLeads = [], isLoading: aliciaLoading } = useQuery({
     queryKey: ['leads_alicia'],
     queryFn: async () => {
@@ -33,6 +33,24 @@ export default function Leads() {
       return data || [];
     },
   });
+
+  // Query Lead Actions (Histórico) - IMPORTANTE PARA EVITAR TELA PRETA
+  const { data: leadActions = [] } = useQuery({
+    queryKey: ['lead_actions'],
+    queryFn: async () => {
+      const { data } = await supabase.from('lead_actions').select('*');
+      return data || [];
+    },
+  });
+
+  const actionsByLead = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    leadActions.forEach(action => {
+      if (!map[action.lead_id]) map[action.lead_id] = [];
+      map[action.lead_id].push(action.action_type);
+    });
+    return map;
+  }, [leadActions]);
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles_dash'],
@@ -49,17 +67,12 @@ export default function Leads() {
 
   const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
 
-  // [THAYLOR] My Leads: Only from 'leads' table
   const myThaylorLeads = isGlobalAdminView 
     ? allLeads.filter(l => !!l.assigned_to)
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
-  // [THAYLOR] Available: Only from 'leads' table (unassigned)
   const availableThaylorLeads = allLeads.filter(l => !l.assigned_to);
 
-  // [ALICIA] Alicia Leads: All leads from 'leads_alicia'
-  // If user is seller, she only sees her collected + available? 
-  // No, let's show all available + those assigned to her in this tab.
   const aliciaLeadsTabContent = isGlobalAdminView
     ? aliciaLeads
     : aliciaLeads.filter(l => !l.assigned_to || l.assigned_to === selectedProfile.id);
@@ -126,8 +139,9 @@ export default function Leads() {
             <MyLeadsTab 
               leads={myThaylorLeads} 
               isLoading={thaylorLoading} 
+              actionsByLead={actionsByLead}
               profileMap={profileMap} 
-              vendedoras={profiles}
+              allLeads={allLeads}
             />
           )}
 
