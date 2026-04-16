@@ -215,6 +215,20 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
                               <p className="text-[10px] uppercase font-bold text-primary mb-2">Mayor obstáculo</p>
                               <p className="text-sm font-medium text-foreground leading-relaxed">{lead.mayor_obstaculo || '—'}</p>
                             </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-primary"></span>
+                                País
+                              </p>
+                              <p className="text-sm font-medium text-foreground">{lead.pais || '—'}</p>
+                            </div>
+                            <div>
+                              <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 flex items-center gap-1.5">
+                                <span className="w-1 h-1 rounded-full bg-primary"></span>
+                                Área de Atuación
+                              </p>
+                              <p className="text-sm font-medium text-foreground">{lead.area_de_atividade || '—'}</p>
+                            </div>
                             {lead.notes && (
                               <div className="lg:col-span-2 bg-background/20 p-4 rounded-xl border border-white/5">
                                 <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Notas</p>

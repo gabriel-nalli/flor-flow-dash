@@ -779,12 +779,14 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                             <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Mayor obstáculo</span>
                             <span className="text-foreground leading-relaxed">{lead.mayor_obstaculo || '—'}</span>
                           </div>
-                          {lead.area_de_atividade && (
-                            <div className="col-span-2">
-                              <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Área de Atividade</span>
-                              <span className="text-foreground">{lead.area_de_atividade}</span>
-                            </div>
-                          )}
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">País</span>
+                            <span className="text-foreground">{lead.pais || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">Área de Atividade</span>
+                            <span className="text-foreground">{lead.area_de_atividade || '—'}</span>
+                          </div>
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm animate-in fade-in slide-in-from-top-1">
