@@ -257,7 +257,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             </div>
 
             {/* Footer: expand */}
-            <div className="flex items-center justify-end px-4 py-2.5 border-t border-border/30 bg-muted/20">
+            <div className="flex items-center justify-end px-4 py-2.5 bg-muted/20">
               <button
                 onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
                 className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"

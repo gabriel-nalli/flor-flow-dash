@@ -422,7 +422,7 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
             </div>
 
             {/* Footer: responsável + expand */}
-            <div className="flex items-center justify-between px-4 py-2.5 border-t border-border/30 bg-muted/20">
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
               {isAdmin && lead.assigned_to
                 ? <span className="text-xs text-muted-foreground">{profileMap[lead.assigned_to] || '—'}</span>
                 : <span />
