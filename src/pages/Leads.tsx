@@ -94,7 +94,7 @@ export default function Leads() {
           </div>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 w-full md:w-auto">
           {isAdmin && (
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function Leads() {
                 window.open(url, '_blank');
                 URL.revokeObjectURL(url);
               }}
-              className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
+              className="hidden md:flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
             >
               <Download size={14} />
               {t('Exportar')}
