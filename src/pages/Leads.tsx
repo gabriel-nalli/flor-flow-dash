@@ -5,7 +5,6 @@ import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, UserCheck, Download, Plus } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
-import { AliciaLeadsTab } from '@/components/leads/AliciaLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
@@ -16,8 +15,7 @@ export default function Leads() {
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
 
-  // Query Thaylor leads
-  const { data: allLeads = [], isLoading: thaylorLoading } = useQuery({
+  const { data: allLeads = [], isLoading } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
       const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
@@ -25,32 +23,13 @@ export default function Leads() {
     },
   });
 
-  // Query Alicia leads
-  const { data: aliciaLeads = [], isLoading: aliciaLoading } = useQuery({
-    queryKey: ['leads_alicia'],
-    queryFn: async () => {
-      const { data } = await supabase.from('leads_alicia').select('*').order('created_at', { ascending: false });
-      return data || [];
-    },
-  });
-
-  // Query Lead Actions (Histórico) - IMPORTANTE PARA EVITAR TELA PRETA
-  const { data: leadActions = [] } = useQuery({
+  const { data: allActions = [] } = useQuery({
     queryKey: ['lead_actions'],
     queryFn: async () => {
-      const { data } = await supabase.from('lead_actions').select('*');
+      const { data } = await supabase.from('lead_actions').select('lead_id, action_type');
       return data || [];
     },
   });
-
-  const actionsByLead = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    leadActions.forEach(action => {
-      if (!map[action.lead_id]) map[action.lead_id] = [];
-      map[action.lead_id].push(action.action_type);
-    });
-    return map;
-  }, [leadActions]);
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles_dash'],
@@ -65,21 +44,27 @@ export default function Leads() {
     [profiles]
   );
 
+  const actionsByLead: Record<string, string[]> = {};
+  allActions.forEach((a) => {
+    if (a.lead_id) {
+      if (!actionsByLead[a.lead_id]) actionsByLead[a.lead_id] = [];
+      if (!actionsByLead[a.lead_id].includes(a.action_type || '')) {
+        actionsByLead[a.lead_id].push(a.action_type || '');
+      }
+    }
+  });
+
+  const webinarLeads = allLeads.filter(l => !l.assigned_to);
+  const collectedLeads = allLeads.filter(l => !!l.assigned_to);
   const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
 
-  const myThaylorLeads = isGlobalAdminView
-    ? allLeads.filter(l => !!l.assigned_to)
+  const myLeads = isGlobalAdminView
+    ? collectedLeads
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
-  const availableThaylorLeads = allLeads.filter(l => !l.assigned_to);
-
-  const aliciaLeadsTabContent = isGlobalAdminView
-    ? aliciaLeads
-    : aliciaLeads.filter(l => !l.assigned_to || l.assigned_to === selectedProfile.id);
-
-  const totalLeadsCount = allLeads.length + aliciaLeads.length;
-  const coletadosCount = allLeads.filter(l => !!l.assigned_to).length + aliciaLeads.filter(l => !!l.assigned_to).length;
-  const pendentesCount = availableThaylorLeads.length + aliciaLeads.filter(l => !l.assigned_to).length;
+  const totalLeads = allLeads.length;
+  const coletados = collectedLeads.length;
+  const pendentes = webinarLeads.length;
 
   return (
     <div className="space-y-6">
@@ -96,20 +81,55 @@ export default function Leads() {
           <div className="flex gap-4">
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/50"></span>
-              {t('Total:')} <span className="font-bold text-foreground">{totalLeadsCount}</span>
+              {t('Total:')} <span className="font-bold text-foreground">{totalLeads}</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs text-green-500">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_6px_rgba(34,197,94,0.6)]"></span>
-              {t('Coletados:')} <span className="font-bold text-green-500">{coletadosCount}</span>
+              {t('Coletados:')} <span className="font-bold text-green-500">{coletados}</span>
             </span>
             <span className="flex items-center gap-1.5 text-xs text-amber-500">
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shadow-[0_0_6px_rgba(245,158,11,0.6)]"></span>
-              {t('Pendentes:')} <span className="font-bold text-amber-500">{pendentesCount}</span>
+              {t('Pendentes:')} <span className="font-bold text-amber-500">{pendentes}</span>
             </span>
           </div>
         </div>
 
         <div className="flex gap-2">
+          {isAdmin && (
+            <button
+              type="button"
+              onClick={() => {
+                const headers = ['Nome', 'WhatsApp', 'Email', 'Instagram', 'Faturamento', 'Origem', 'Status', 'Responsável', 'Venda', 'Valor Venda', 'Valor Cash', 'Webinar Tag', 'Criado em'];
+                const rows = allLeads.map(l => [
+                  l.nome,
+                  l.whatsapp || '',
+                  l.email || '',
+                  l.instagram || '',
+                  l.faturamento ?? '',
+                  l.origem || '',
+                  l.status || '',
+                  l.assigned_to || '',
+                  l.sale_status || '',
+                  l.sale_value ?? '',
+                  l.cash_value ?? '',
+                  l.webinar_date_tag || '',
+                  l.created_at || '',
+                ].map(v => `"${String(v).replace(/"/g, '""')}"`).join(','));
+                const csv = [headers.join(','), ...rows].join('\n');
+                const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `leads_${new Date().toISOString().slice(0, 10)}.csv`;
+                window.open(url, '_blank');
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-2 bg-secondary hover:bg-muted text-muted-foreground hover:text-foreground px-4 py-2 rounded-lg transition-all text-sm font-medium"
+            >
+              <Download size={14} />
+              {t('Exportar')}
+            </button>
+          )}
           <button
             type="button"
             onClick={() => setNewLeadOpen(true)}
@@ -121,62 +141,47 @@ export default function Leads() {
         </div>
       </div>
 
-      <div className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5">
-        <div className="flex bg-background/50 border-b border-white/5">
-          <TabButton active={activeTab === 'meus'} onClick={() => setActiveTab('meus')}>
-            {isGlobalAdminView ? 'Leads Coletados Thaylor' : 'Meus Leads Thaylor'}
-          </TabButton>
-          <TabButton active={activeTab === 'webinar'} onClick={() => setActiveTab('webinar')}>
-            Leads Disponíveis
-          </TabButton>
-          <TabButton active={activeTab === 'alicia'} onClick={() => setActiveTab('alicia')}>
-            Leads Alicia
-          </TabButton>
+      <div className="bg-card rounded-2xl overflow-hidden">
+        <div className="flex">
+          <button
+            type="button"
+            onClick={() => setActiveTab('meus')}
+            className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold transition-all relative flex-1 md:flex-none ${activeTab === 'meus'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/70'
+              }`}
+          >
+            {isGlobalAdminView ? t('Leads Coletados') : t('Meus Leads')}
+            {activeTab === 'meus' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
+            )}
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('webinar')}
+            className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold transition-all relative flex-1 md:flex-none ${activeTab === 'webinar'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/70'
+              }`}
+          >
+            {t('Leads Disponíveis')}
+            {activeTab === 'webinar' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
+            )}
+          </button>
         </div>
 
-        <div className="p-0">
+        <div>
           {activeTab === 'meus' && (
-            <MyLeadsTab
-              leads={myThaylorLeads}
-              isLoading={thaylorLoading}
-              actionsByLead={actionsByLead}
-              profileMap={profileMap}
-              allLeads={allLeads}
-            />
+            <MyLeadsTab leads={myLeads} isLoading={isLoading} actionsByLead={actionsByLead} allLeads={allLeads} profileMap={profileMap} />
           )}
-
           {activeTab === 'webinar' && (
-            <WebinarLeadsTab
-              leads={availableThaylorLeads}
-              isLoading={thaylorLoading}
-            />
-          )}
-
-          {activeTab === 'alicia' && (
-            <AliciaLeadsTab
-              leads={aliciaLeadsTabContent}
-              isLoading={aliciaLoading}
-              profileMap={profileMap}
-              vendedoras={profiles}
-            />
+            <WebinarLeadsTab leads={webinarLeads} isLoading={isLoading} allLeads={allLeads} profileMap={profileMap} />
           )}
         </div>
       </div>
 
       <NewLeadDialog open={newLeadOpen} onOpenChange={setNewLeadOpen} />
     </div>
-  );
-}
-
-function TabButton({ children, active, onClick }: { children: React.ReactNode, active: boolean, onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`px-6 py-4 text-xs font-bold transition-all relative flex items-center ${active ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground/70'
-        }`}
-    >
-      {children}
-    </button>
   );
 }
