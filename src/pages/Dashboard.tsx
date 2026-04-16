@@ -162,7 +162,8 @@ export default function Dashboard() {
     const collectionActions = allActions.filter(a => 
       a.action_type === 'lead_collected' && 
       isInRange(a.created_at) &&
-      leads.find(l => l.id === a.lead_id)?.origem === 'webinar'
+      leads.find(l => l.id === a.lead_id)?.origem === 'webinar' &&
+      (isGlobalAdminView ? true : (a.user_id === selectedProfile.id))
     );
 
     const durations = collectionActions.map(action => {
@@ -175,7 +176,7 @@ export default function Dashboard() {
     if (durations.length === 0) return { avg: '—', raw: 0 };
     const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
     return { avg: formatDuration(avg), raw: avg };
-  }, [allActions, leads, isInRange]);
+  }, [allActions, leads, isInRange, isGlobalAdminView, selectedProfile.id]);
 
   const getSellerResponseTime = (sellerId: string) => {
     const pLeads = leads.filter(l => l.assigned_to === sellerId && l.origem === 'webinar');
