@@ -124,7 +124,7 @@ export default function Leads() {
       <div className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5">
         <div className="flex bg-background/50 border-b border-white/5">
           <TabButton active={activeTab === 'meus'} onClick={() => setActiveTab('meus')}>
-            {isGlobalAdminView ? 'Leads Coletados Thaylor' : 'Meus Leads Thaylor'}
+            {isGlobalAdminView ? 'Leads Coletados' : 'Meus Leads'}
           </TabButton>
           <TabButton active={activeTab === 'webinar'} onClick={() => setActiveTab('webinar')}>
             Leads Disponíveis
