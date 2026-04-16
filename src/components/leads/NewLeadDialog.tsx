@@ -43,6 +43,9 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
   const [rendaFamiliar, setRendaFamiliar] = useState('');
   const [quemInveste, setQuemInveste] = useState('');
   const [webinarDate, setWebinarDate] = useState('');
+  const [tagManual, setTagManual] = useState('');
+  const [momentoAtual, setMomentoAtual] = useState('');
+  const [valorInvestimento, setValorInvestimento] = useState('');
   const sellers = teamMembers.filter(p => p.role !== 'ADMIN');
 
   const resetForm = () => {
@@ -50,6 +53,9 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
     setFaturamento(''); setOrigem('webinar'); setAssignedTo('none');
     setProfissao(''); setMaiorDificuldade(''); setRendaFamiliar(''); setQuemInveste('');
     setWebinarDate('');
+    setTagManual('');
+    setMomentoAtual('');
+    setValorInvestimento('');
     setShowOptional(false);
   };
 
@@ -74,6 +80,9 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
         maior_dificuldade: maiorDificuldade.trim() || null,
         renda_familiar: rendaFamiliar.trim() || null,
         quem_investe: quemInveste.trim() || null,
+        tag_manual: tagManual.trim() || null,
+        momento_atual: momentoAtual.trim() || null,
+        valor_investimento: valorInvestimento.trim() || null,
         ...(origem === 'webinar' && webinarDate
           ? { webinar_date_tag: webinarDate }
           : {}),
@@ -162,17 +171,23 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs text-muted-foreground font-medium">{t('Origem')}</label>
-                <Select value={origem} onValueChange={(v) => { setOrigem(v); if (v !== 'webinar') setWebinarDate(''); }}>
-                  <SelectTrigger className="bg-secondary border-none h-11">
-                    <Tag size={14} className="mr-2 text-muted-foreground" />
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ORIGIN_OPTIONS.map(o => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="flex gap-2">
+                  <Select value={origem} onValueChange={(v) => { setOrigem(v); if (v !== 'webinar') setWebinarDate(''); }}>
+                    <SelectTrigger className="bg-secondary border-none h-11 flex-1">
+                      <Tag size={14} className="mr-2 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ORIGIN_OPTIONS.map(o => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <div className="relative flex-1">
+                    <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <Input placeholder="Tag Manual" value={tagManual} onChange={e => setTagManual(e.target.value)} className="pl-9 bg-secondary border-none h-11 text-xs" />
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -262,6 +277,26 @@ export function NewLeadDialog({ open, onOpenChange }: NewLeadDialogProps) {
                     <Heart size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <Input placeholder="Ex: Eu mesma, Família..." value={quemInveste} onChange={e => setQuemInveste(e.target.value)} className="pl-9 bg-secondary border-none h-11" />
                   </div>
+                </div>
+
+                <div className="space-y-1.5 pt-2">
+                  <label className="text-xs text-muted-foreground font-medium font-bold text-primary">Momento Atual</label>
+                  <Input 
+                    placeholder="Descreva o momento do lead" 
+                    value={momentoAtual} 
+                    onChange={e => setMomentoAtual(e.target.value)} 
+                    className="bg-secondary border-none h-11" 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground font-medium font-bold text-primary">Quanto está disposta a investir</label>
+                  <Input 
+                    placeholder="Valor ou descrição do investimento" 
+                    value={valorInvestimento} 
+                    onChange={e => setValorInvestimento(e.target.value)} 
+                    className="bg-secondary border-none h-11" 
+                  />
                 </div>
               </div>
             )}

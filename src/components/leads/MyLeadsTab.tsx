@@ -550,6 +550,8 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Insta')}</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Faturamento')}</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Tag</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Momento</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">Investimento</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Status')}</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Etapas')}</th>
               {isAdmin && <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">{t('Responsável')}</th>}
@@ -603,6 +605,12 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                           : <span className="capitalize">{lead.origem || '—'}</span>
                       }
                     </span>
+                  </td>
+                  <td className="px-4 py-4 text-xs text-muted-foreground max-w-[150px] truncate">
+                    {lead.momento_atual || '—'}
+                  </td>
+                  <td className="px-4 py-4 text-xs text-muted-foreground max-w-[150px] truncate">
+                    {lead.valor_investimento || '—'}
                   </td>
                   <td className="px-4 py-4"><NeonStatusBadge status={lead.status} /></td>
                   <td className="px-4 py-4"><LeadPipelineStages completedActions={getDerivedActions(lead, actionsByLead[lead.id] || [])} /></td>
