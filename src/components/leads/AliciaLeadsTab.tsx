@@ -18,7 +18,7 @@ interface AliciaLeadsTabProps {
 }
 
 export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabProps) {
-  const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
+  const { selectedProfile, isAdmin } = useProfileSelector();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
 
@@ -29,7 +29,8 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
   const [editLead, setEditLead] = useState<any>(null);
 
   const filtered = leads.filter(lead => {
-    if (nameFilter && !lead.nombre?.toLowerCase().includes(nameFilter.toLowerCase())) return false;
+    const nome = lead.nombre || lead.nome || '';
+    if (nameFilter && !nome.toLowerCase().includes(nameFilter.toLowerCase())) return false;
     return true;
   });
 
@@ -44,8 +45,8 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
         .select();
       if (error) throw error;
       if (data && data.length > 0) {
-        // Log action if needed (assuming lead_actions supports alicia leads too or just skip for now)
         queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
         toast.success('Lead Alicia coletado com sucesso! ✅');
       } else {
         queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
@@ -58,11 +59,6 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
     }
   };
 
-  const handleWhatsApp = (lead: any) => {
-    const phone = lead.whatsapp?.replace(/\D/g, '') || '';
-    window.open(`https://wa.me/${phone}`, '_blank');
-  };
-
   return (
     <div>
       <div className="px-4 md:px-6 py-4 md:py-5">
@@ -70,11 +66,6 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
           <div className="flex-1 max-w-sm">
             <NeonInput icon={Search} placeholder={t('Buscar nome...')} value={nameFilter} onChange={e => setNameFilter(e.target.value)} />
           </div>
-          {nameFilter && (
-            <button onClick={() => setNameFilter('')} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
-              <X size={12} /> {t('Limpar')}
-            </button>
-          )}
         </div>
       </div>
 
@@ -91,21 +82,19 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
           <thead>
             <tr>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">NOME</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">NÚMERO</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">INSTAGRAM</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">ÁREA</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">INSTA</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">FATURAMENTO</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">LINK</th>
-              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">PAÍS</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">ORIGEM</th>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">DATA</th>
+              <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-4 py-4">STATUS</th>
               <th className="text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">AÇÕES</th>
             </tr>
           </thead>
           <tbody>
             {isLoading ? (
-              <tr><td colSpan={9} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
+              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={9} className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</td></tr>
+              <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</td></tr>
             ) : filtered.map(lead => (
               <React.Fragment key={lead.id}>
                 <tr className="hover:bg-muted/30 transition-colors group">
@@ -115,29 +104,35 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
                       <span className="font-medium text-foreground text-sm">{lead.nombre}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-sm text-foreground">{lead.whatsapp || '—'}</td>
                   <td className="px-4 py-4">
-                    {lead.instagram && (
-                      <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary">
-                        <Instagram size={14} /> @{lead.instagram.replace(/^@/, '')}
-                      </a>
-                    )}
+                    <div className="flex items-center gap-2">
+                       {lead.instagram && (
+                        <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity">
+                          <Instagram size={14} className="text-white" />
+                        </a>
+                      )}
+                    </div>
                   </td>
-                  <td className="px-4 py-4 text-xs text-muted-foreground max-w-[120px] truncate">{lead.area_de_atividade || lead.nombre_form || '—'}</td>
-                  <td className="px-4 py-4 text-xs font-medium text-foreground">{lead.facturacion_mensual || '—'}</td>
+                  <td className="px-4 py-4 text-sm font-medium text-foreground">{lead.facturacion_mensual || '—'}</td>
                   <td className="px-4 py-4">
-                    {lead.whatsapp && (
-                      <a href={`https://wa.me/${lead.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline flex items-center gap-1 text-[10px]">
-                        <ExternalLink size={10} /> Link WA
-                      </a>
-                    )}
+                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
+                      {lead.source_tag || 'FORMS ALICIA'}
+                    </span>
                   </td>
-                  <td className="px-4 py-4 text-xs text-muted-foreground">{lead.pais || '—'}</td>
                   <td className="px-4 py-4 text-xs text-muted-foreground">
-                    {lead.created_at ? format(parseISO(lead.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR }) : '—'}
+                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM", { locale: ptBR }) : '—'}
+                  </td>
+                  <td className="px-4 py-4">
+                    <NeonStatusBadge status={lead.status} />
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-1">
+                      <button
+                        onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                        className="p-2 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground"
+                      >
+                        {expandedId === lead.id ? <ChevronUp size={16} className="text-primary" /> : <ChevronDown size={16} />}
+                      </button>
                       <button
                         onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}
                         className="p-2 rounded-lg hover:bg-muted/50 transition-colors text-muted-foreground hover:text-foreground"
@@ -149,15 +144,52 @@ export function AliciaLeadsTab({ leads, isLoading, profileMap }: AliciaLeadsTabP
                           size="sm"
                           onClick={() => handleCollect(lead)}
                           disabled={collectingId === lead.id}
-                          className="h-8 rounded-lg text-xs"
+                          className="h-9 px-4 rounded-xl text-xs font-bold"
                         >
-                          <CheckCircle size={14} className="mr-1" />
+                          <CheckCircle size={14} className="mr-2" />
                           {collectingId === lead.id ? '...' : 'Coletar'}
                         </Button>
                       )}
                     </div>
                   </td>
                 </tr>
+
+                {expandedId === lead.id && (
+                  <tr className="bg-muted/10">
+                    <td colSpan={7} className="px-6 py-6 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Tiempo de experiencia</p>
+                          <p className="text-sm font-medium text-foreground">{lead.tiempo_experiencia || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Cantidad de empleados</p>
+                          <p className="text-sm font-medium text-foreground">{lead.cantidad_empleados || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Plan concreto</p>
+                          <p className="text-sm font-medium text-foreground">{lead.plan_concreto || '—'}</p>
+                        </div>
+                         <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Tiempo para resultados</p>
+                          <p className="text-sm font-medium text-foreground">{lead.tiempo_resultados || '—'}</p>
+                        </div>
+                        <div className="lg:col-span-2">
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2 text-primary font-bold">Mayor obstáculo</p>
+                          <p className="text-sm font-medium text-foreground leading-relaxed">{lead.mayor_obstaculo || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">País</p>
+                          <p className="text-sm font-medium text-foreground">{lead.pais || '—'}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase font-bold text-muted-foreground mb-2">Área de Atividade</p>
+                          <p className="text-sm font-medium text-foreground">{lead.area_de_atividade || '—'}</p>
+                        </div>
+                      </div>
+                    </td>
+                  </tr>
+                )}
               </React.Fragment>
             ))}
           </tbody>

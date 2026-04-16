@@ -756,33 +756,64 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                 </tr>
                 {expandedId === lead.id && (
                   <tr className="bg-muted/20">
-                    <td colSpan={isAdmin ? 8 : 7} className="px-6 py-4">
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Profissão')}</span>
-                          <span className="text-foreground">{lead.profissao || '—'}</span>
+                    <td colSpan={isAdmin ? 11 : 10} className="px-6 py-4">
+                      {lead.isAlicia ? (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm animate-in fade-in slide-in-from-top-1">
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">Tiempo de experiencia</span>
+                            <span className="text-foreground">{lead.tiempo_experiencia || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">Cantidad de empleados</span>
+                            <span className="text-foreground">{lead.cantidad_empleados || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">Plan concreto</span>
+                            <span className="text-foreground">{lead.plan_concreto || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">Tiempo para resultados</span>
+                            <span className="text-foreground">{lead.tiempo_resultados || '—'}</span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Mayor obstáculo</span>
+                            <span className="text-foreground leading-relaxed">{lead.mayor_obstaculo || '—'}</span>
+                          </div>
+                          {lead.area_de_atividade && (
+                            <div className="col-span-2">
+                              <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Área de Atividade</span>
+                              <span className="text-foreground">{lead.area_de_atividade}</span>
+                            </div>
+                          )}
                         </div>
-                        <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Maior Dificuldade')}</span>
-                          <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
+                      ) : (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm animate-in fade-in slide-in-from-top-1">
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">{t('Profissão')}</span>
+                            <span className="text-foreground">{lead.profissao || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">{t('Maior Dificuldade')}</span>
+                            <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">{t('Renda Familiar')}</span>
+                            <span className="text-foreground">{lead.renda_familiar || '—'}</span>
+                          </div>
+                          <div>
+                            <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
+                            <span className="text-foreground">{lead.quem_investe || '—'}</span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Momento Atual</span>
+                            <span className="text-foreground">{lead.momento_atual || '—'}</span>
+                          </div>
+                          <div className="col-span-2">
+                            <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Disposta a Investir</span>
+                            <span className="text-foreground">{lead.valor_investimento || '—'}</span>
+                          </div>
                         </div>
-                        <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Renda Familiar')}</span>
-                          <span className="text-foreground">{lead.renda_familiar || '—'}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
-                          <span className="text-foreground">{lead.quem_investe || '—'}</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Momento Atual</span>
-                          <span className="text-foreground">{lead.momento_atual || '—'}</span>
-                        </div>
-                        <div className="col-span-2">
-                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Disposta a Investir</span>
-                          <span className="text-foreground">{lead.valor_investimento || '—'}</span>
-                        </div>
-                      </div>
+                      )}
                     </td>
                   </tr>
                 )}
