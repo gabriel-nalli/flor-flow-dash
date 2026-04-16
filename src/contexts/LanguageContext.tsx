@@ -60,6 +60,12 @@ const translations = {
   'Tempo Médio Coleta': { pt: 'Tempo Médio Coleta', es: 'Tiempo Medio Recolección' },
   'T. Coleta:': { pt: 'T. Coleta:', es: 'T. Recolección:' },
   'T. Resposta': { pt: 'T. Resposta', es: 'T. Respuesta' },
+  'Ontem': { pt: 'Ontem', es: 'Ayer' },
+  'Esta Semana': { pt: 'Esta Semana', es: 'Esta Semana' },
+  'Este Mês': { pt: 'Este Mês', es: 'Este Mes' },
+  'Mês Passado': { pt: 'Mês Passado', es: 'Mes Pasado' },
+  'Personalizado': { pt: 'Personalizado', es: 'Personalizado' },
+  'Todos os Tempos': { pt: 'Todos os Tempos', es: 'Todos los Tiempos' },
 
   // ─── SalesGoalChart ─────────────────────────────────────────────────
   'Todo o período': { pt: 'Todo o período', es: 'Todo el período' },

@@ -9,7 +9,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, Filter, LucideIcon, Clock } from 'lucide-react';
 import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart';
 import { AlertLeadsDialog } from '@/components/dashboard/AlertLeadsDialog';
-import { isToday, parseISO, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
+import { isToday, isYesterday, parseISO, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval, subDays } from 'date-fns';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarPicker } from '@/components/ui/calendar';
+import { DateRange } from 'react-day-picker';
+import { ptBR } from 'date-fns/locale';
 
 function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: LucideIcon; color: string }) {
   return (
@@ -54,6 +58,10 @@ export default function Dashboard() {
   const [showSemResponsavelDialog, setShowSemResponsavelDialog] = useState(false);
   const [segmentFilter, setSegmentFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('this_month');
+  const [customRange, setCustomRange] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  });
   const { data: leads = [] } = useQuery({
     queryKey: ['leads'],
     queryFn: async () => {
@@ -123,10 +131,20 @@ export default function Dashboard() {
     if (dateFilter === 'all') return null;
     const now = new Date();
     if (dateFilter === 'today') return { start: startOfDay(now), end: endOfDay(now) };
+    if (dateFilter === 'yesterday') {
+      const yesterday = subDays(now, 1);
+      return { start: startOfDay(yesterday), end: endOfDay(yesterday) };
+    }
     if (dateFilter === 'this_week') return { start: startOfWeek(now, { weekStartsOn: 1 }), end: endOfWeek(now, { weekStartsOn: 1 }) };
     if (dateFilter === 'this_month') return { start: startOfMonth(now), end: endOfMonth(now) };
+    if (dateFilter === 'custom' && customRange?.from) {
+      return { 
+        start: startOfDay(customRange.from), 
+        end: customRange.to ? endOfDay(customRange.to) : endOfDay(customRange.from) 
+      };
+    }
     return { start: startOfMonth(subMonths(now, 1)), end: endOfMonth(subMonths(now, 1)) };
-  }, [dateFilter]);
+  }, [dateFilter, customRange]);
 
   const isInRange = (dateStr: string | null | undefined) => {
     if (!dateRange) return true;
@@ -327,13 +345,47 @@ export default function Dashboard() {
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="today">Hoje</SelectItem>
-                <SelectItem value="this_week">Esta Semana</SelectItem>
-                <SelectItem value="this_month">Este Mês</SelectItem>
-                <SelectItem value="last_month">Mês Passado</SelectItem>
-                <SelectItem value="all">Todos os Tempos</SelectItem>
+                <SelectItem value="today">{t('Hoje')}</SelectItem>
+                <SelectItem value="yesterday">{t('Ontem')}</SelectItem>
+                <SelectItem value="this_week">{t('Esta Semana')}</SelectItem>
+                <SelectItem value="this_month">{t('Este Mês')}</SelectItem>
+                <SelectItem value="last_month">{t('Mês Passado')}</SelectItem>
+                <SelectItem value="custom">{t('Personalizado')}</SelectItem>
+                <SelectItem value="all">{t('Todos os Tempos')}</SelectItem>
               </SelectContent>
             </Select>
+
+            {dateFilter === 'custom' && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button className="flex items-center gap-2 bg-card border border-input px-3 py-2 rounded-lg text-sm hover:bg-muted transition-colors">
+                    <Calendar size={14} className="text-primary" />
+                    {customRange?.from ? (
+                      customRange.to ? (
+                        <>
+                          {format(customRange.from, "dd/MM")} - {format(customRange.to, "dd/MM")}
+                        </>
+                      ) : (
+                        format(customRange.from, "dd/MM/yyyy")
+                      )
+                    ) : (
+                      "Selecionar data"
+                    )}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <CalendarPicker
+                    initialFocus
+                    mode="range"
+                    defaultMonth={customRange?.from}
+                    selected={customRange}
+                    onSelect={setCustomRange}
+                    numberOfMonths={2}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
           {isAdmin && (
             <div className="flex items-center gap-2 flex-1 md:flex-none">
