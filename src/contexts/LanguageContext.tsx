@@ -57,6 +57,9 @@ const translations = {
   'Carregando rotinas...': { pt: 'Carregando rotinas...', es: 'Cargando rutinas...' },
   'Agendados': { pt: 'Agendados', es: 'Agendados' },
   'Ações Hoje': { pt: 'Ações Hoje', es: 'Acciones Hoy' },
+  'Tempo Médio Coleta': { pt: 'Tempo Médio Coleta', es: 'Tiempo Medio Recolección' },
+  'T. Coleta:': { pt: 'T. Coleta:', es: 'T. Recolección:' },
+  'T. Resposta': { pt: 'T. Resposta', es: 'T. Respuesta' },
 
   // ─── SalesGoalChart ─────────────────────────────────────────────────
   'Todo o período': { pt: 'Todo o período', es: 'Todo el período' },

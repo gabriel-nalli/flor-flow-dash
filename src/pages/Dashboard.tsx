@@ -6,12 +6,12 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, Filter, LucideIcon } from 'lucide-react';
+import { Users, Calendar, TrendingUp, AlertTriangle, Phone, CheckCircle2, Download, Filter, LucideIcon, Clock } from 'lucide-react';
 import { SalesFunnelChart } from '@/components/dashboard/SalesFunnelChart';
 import { AlertLeadsDialog } from '@/components/dashboard/AlertLeadsDialog';
 import { isToday, parseISO, format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, subMonths, isWithinInterval } from 'date-fns';
 
-function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value: number; icon: LucideIcon; color: string }) {
+function NeonKPICard({ title, value, icon: Icon, color }: { title: string; value: string | number; icon: LucideIcon; color: string }) {
   return (
     <div className="group relative bg-card p-4 md:p-6 rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1">
       <div
@@ -149,6 +149,56 @@ export default function Dashboard() {
   const semResponsavelLeads = leads.filter(l => !l.assigned_to);
   const semResponsavel = semResponsavelLeads.length;
 
+  const formatDuration = (ms: number) => {
+    if (ms <= 0) return '—';
+    const minutes = Math.floor(ms / 60000);
+    if (minutes < 60) return `${minutes}m`;
+    const hours = Math.floor(minutes / 60);
+    const remainingMinutes = minutes % 60;
+    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+  };
+
+  const responseTimeMetric = useMemo(() => {
+    const collectionActions = allActions.filter(a => 
+      a.action_type === 'lead_collected' && 
+      isInRange(a.created_at) &&
+      leads.find(l => l.id === a.lead_id)?.origem === 'webinar'
+    );
+
+    const durations = collectionActions.map(action => {
+      const lead = leads.find(l => l.id === action.lead_id);
+      if (!lead?.created_at || !action.created_at) return null;
+      const diff = new Date(action.created_at).getTime() - new Date(lead.created_at).getTime();
+      return diff > 0 ? diff : null;
+    }).filter((d): d is number => d !== null);
+
+    if (durations.length === 0) return { avg: '—', raw: 0 };
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    return { avg: formatDuration(avg), raw: avg };
+  }, [allActions, leads, isInRange]);
+
+  const getSellerResponseTime = (sellerId: string) => {
+    const pLeads = leads.filter(l => l.assigned_to === sellerId && l.origem === 'webinar');
+    const pLeadIds = new Set(pLeads.map(l => l.id));
+    const pCollectionActions = allActions.filter(a => 
+      a.action_type === 'lead_collected' && 
+      a.user_id === sellerId &&
+      pLeadIds.has(a.lead_id!) &&
+      isInRange(a.created_at)
+    );
+
+    const durations = pCollectionActions.map(action => {
+      const lead = pLeads.find(l => l.id === action.lead_id);
+      if (!lead?.created_at || !action.created_at) return null;
+      const diff = new Date(action.created_at).getTime() - new Date(lead.created_at).getTime();
+      return diff > 0 ? diff : null;
+    }).filter((d): d is number => d !== null);
+
+    if (durations.length === 0) return '—';
+    const avg = durations.reduce((a, b) => a + b, 0) / durations.length;
+    return formatDuration(avg);
+  };
+
   const profileMap: Record<string, string> = {};
   profiles.forEach((p: any) => { if (p.id && p.full_name) profileMap[p.id] = p.full_name; });
 
@@ -158,6 +208,7 @@ export default function Dashboard() {
     { label: t('Reuniões'), value: reunioes, icon: Phone, color: '#3b82f6' },
     { label: t('Vendas'), value: vendas, icon: TrendingUp, color: '#22c55e' },
     { label: t('Follow-up Pendente'), value: followUpPendente, icon: AlertTriangle, color: '#eab308' },
+    { label: t('Tempo Médio Coleta'), value: responseTimeMetric.avg, icon: Clock, color: '#06b6d4' },
     { label: t('Total Leads'), value: visibleLeads.length, icon: CheckCircle2, color: '#9ca3af' },
   ];
 
@@ -389,6 +440,10 @@ export default function Dashboard() {
                           <span className="text-muted-foreground">{t('Vendas:')}</span>
                           <span className="font-bold tabular-nums">{pWon.length}</span>
                         </div>
+                        <div className="flex justify-between border-t border-muted/30 pt-1 mt-1">
+                          <span className="text-muted-foreground">{t('T. Coleta:')}</span>
+                          <span className="font-bold tabular-nums">{getSellerResponseTime(p.id)}</span>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
@@ -447,6 +502,7 @@ export default function Dashboard() {
                       <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pCountAction('meeting_done')}</p><p className="text-xs text-muted-foreground">{t('Reuniões')}</p></CardContent></Card>
                       <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pActions.length}</p><p className="text-xs text-muted-foreground">{t('Ações Hoje')}</p></CardContent></Card>
                       <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{pWonInPeriod.length}</p><p className="text-xs text-muted-foreground">{t('Vendas')}</p></CardContent></Card>
+                      <Card><CardContent className="p-3 text-center"><p className="text-2xl font-bold">{getSellerResponseTime(p.id)}</p><p className="text-xs text-muted-foreground">{t('T. Coleta')}</p></CardContent></Card>
                     </div>
                   </TabsContent>
                 );
