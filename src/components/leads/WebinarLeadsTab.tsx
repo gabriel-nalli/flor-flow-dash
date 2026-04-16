@@ -39,7 +39,11 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const [editLead, setEditLead] = useState<any>(null);
 
   const resolvedProfileMap = profileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
-  const uniqueTags = Array.from(new Set(allLeads.map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse();
+  
+  // Extrai tags únicas priorizando a tag_manual, depois webinar_date_tag
+  const uniqueTags = Array.from(new Set(
+    allLeads.map(l => l.tag_manual || l.webinar_date_tag).filter(Boolean)
+  )).sort().reverse();
 
   const parseFaturamento = (fat: string | null | undefined): string => {
     if (!fat) return '';
@@ -67,7 +71,10 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const filtered = leads.filter(lead => {
     if (nameFilter && !lead.nome?.toLowerCase().includes(nameFilter.toLowerCase())) return false;
     if (instaFilter && !lead.instagram?.toLowerCase().includes(instaFilter.toLowerCase())) return false;
-    if (tagFilter !== 'all' && lead.webinar_date_tag !== tagFilter) return false;
+    
+    const leadTag = lead.tag_manual || lead.webinar_date_tag;
+    if (tagFilter !== 'all' && leadTag !== tagFilter) return false;
+    
     if (mqlOnly && !isMql(lead.faturamento)) return false;
     if (revenueFilter !== 'all' && parseFaturamento(lead.faturamento) !== revenueFilter) return false;
     if (dateFilter && lead.created_at) {
@@ -244,13 +251,15 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                   {isNaN(Number(lead.faturamento)) ? lead.faturamento : `R$ ${Number(lead.faturamento).toLocaleString('pt-BR')}`}
                 </span>
               )}
-              {lead.webinar_date_tag && (
+              {lead.tag_manual || lead.webinar_date_tag ? (
                 <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
-                  {/^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
-                    ? format(parseISO(lead.webinar_date_tag), 'dd/MM')
-                    : lead.webinar_date_tag}
+                  {lead.tag_manual || (
+                    /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                      ? format(parseISO(lead.webinar_date_tag), 'dd/MM')
+                      : lead.webinar_date_tag
+                  )}
                 </span>
-              )}
+              ) : null}
               {lead.created_at && (
                 <span className="text-xs text-muted-foreground">
                   {format(parseISO(lead.created_at), "dd MMM", { locale: ptBR })}
@@ -311,11 +320,13 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                   </td>
                   <td className="px-4 py-4">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
-                      {lead.webinar_date_tag
-                        ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
-                          ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{format(parseISO(lead.webinar_date_tag), 'dd/MM')}</span></>
-                          : <span>{lead.webinar_date_tag}</span>
-                        : <span className="capitalize">{lead.origem || 'webinar'}</span>
+                      {lead.tag_manual 
+                        ? <span>{lead.tag_manual}</span>
+                        : lead.webinar_date_tag
+                          ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                            ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{format(parseISO(lead.webinar_date_tag), 'dd/MM')}</span></>
+                            : <span>{lead.webinar_date_tag}</span>
+                          : <span className="capitalize">{lead.origem || 'webinar'}</span>
                       }
                     </span>
                   </td>
@@ -373,12 +384,20 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                           <span className="text-foreground">{lead.maior_dificuldade || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Renda Familiar')}</span>
+                          <span className="text-muted-foreground text-xs block mb-1">Renda Familiar</span>
                           <span className="text-foreground">{lead.renda_familiar || '—'}</span>
                         </div>
                         <div>
-                          <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
+                          <span className="text-muted-foreground text-xs block mb-1">Quem Investe</span>
                           <span className="text-foreground">{lead.quem_investe || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Momento Atual</span>
+                          <span className="text-foreground">{lead.momento_atual || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Disposta a Investir</span>
+                          <span className="text-foreground">{lead.valor_investimento || '—'}</span>
                         </div>
                       </div>
                     </td>

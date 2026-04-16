@@ -58,7 +58,11 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
       return leads.some(l => l.assigned_to === id) || allLeads.some(l => l.assigned_to === id);
     })
     .map(([id, name]) => ({ id, full_name: name }));
-  const uniqueTags = Array.from(new Set((allLeads.length ? allLeads : leads).map(l => l.webinar_date_tag).filter(Boolean))).sort().reverse();
+  const uniqueTags = Array.from(new Set(
+    (allLeads.length ? allLeads : leads)
+      .map(l => l.tag_manual || l.webinar_date_tag)
+      .filter(Boolean)
+  )).sort().reverse();
 
   // Busca todos os perfis para o dialog de troca de responsável (apenas admin)
   const { data: allProfiles = [] } = useQuery({
@@ -222,7 +226,10 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
       if (lead.status !== 'perdido') return false;
     } else if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
     if (isAdmin && sellerFilter !== 'all' && lead.assigned_to !== sellerFilter) return false;
-    if (tagFilter !== 'all' && lead.webinar_date_tag !== tagFilter) return false;
+    
+    const leadTag = lead.tag_manual || lead.webinar_date_tag;
+    if (tagFilter !== 'all' && leadTag !== tagFilter) return false;
+    
     if (mqlOnly && !isMql(lead.faturamento)) return false;
     if (revenueFilter !== 'all' && parseFaturamento(lead.faturamento) !== revenueFilter) return false;
     return true;
@@ -511,13 +518,15 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                   {isNaN(Number(lead.faturamento)) ? lead.faturamento : `R$ ${Number(lead.faturamento).toLocaleString('pt-BR')}`}
                 </span>
               )}
-              {lead.webinar_date_tag && (
+              {lead.tag_manual || lead.webinar_date_tag ? (
                 <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
-                  {/^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
-                    ? `${lead.webinar_date_tag.slice(8, 10)}/${lead.webinar_date_tag.slice(5, 7)}`
-                    : lead.webinar_date_tag}
+                  {lead.tag_manual || (
+                    /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                      ? `${lead.webinar_date_tag.slice(8, 10)}/${lead.webinar_date_tag.slice(5, 7)}`
+                      : lead.webinar_date_tag
+                  )}
                 </span>
-              )}
+              ) : null}
             </div>
             <div className="flex items-center justify-between">
               <LeadPipelineStages completedActions={getDerivedActions(lead, actionsByLead[lead.id] || [])} />
@@ -585,11 +594,13 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                   </td>
                   <td className="px-4 py-4">
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-xs font-medium text-muted-foreground">
-                      {lead.webinar_date_tag
-                        ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
-                          ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{lead.webinar_date_tag.slice(8, 10) + '/' + lead.webinar_date_tag.slice(5, 7)}</span></>
-                          : <span>{lead.webinar_date_tag}</span>
-                        : <span className="capitalize">{lead.origem || '—'}</span>
+                      {lead.tag_manual 
+                        ? <span>{lead.tag_manual}</span>
+                        : lead.webinar_date_tag
+                          ? /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
+                            ? <><span className="capitalize">{lead.origem || 'webinar'}</span><span className="opacity-40">·</span><span>{lead.webinar_date_tag.slice(8, 10) + '/' + lead.webinar_date_tag.slice(5, 7)}</span></>
+                            : <span>{lead.webinar_date_tag}</span>
+                          : <span className="capitalize">{lead.origem || '—'}</span>
                       }
                     </span>
                   </td>
@@ -738,6 +749,14 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
                         <div>
                           <span className="text-muted-foreground text-xs block mb-1">{t('Quem Investe')}</span>
                           <span className="text-foreground">{lead.quem_investe || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Momento Atual</span>
+                          <span className="text-foreground">{lead.momento_atual || '—'}</span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-muted-foreground text-xs block mb-1 font-bold text-primary">Disposta a Investir</span>
+                          <span className="text-foreground">{lead.valor_investimento || '—'}</span>
                         </div>
                       </div>
                     </td>

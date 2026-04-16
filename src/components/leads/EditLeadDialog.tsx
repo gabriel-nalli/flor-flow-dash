@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Edit2, User, MessageCircle, Instagram, DollarSign } from 'lucide-react';
+import { Edit2, User, MessageCircle, Instagram, DollarSign, Tag } from 'lucide-react';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface EditLeadDialogProps {
@@ -23,6 +23,9 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
   const [whatsapp, setWhatsapp] = useState('');
   const [instagram, setInstagram] = useState('');
   const [faturamento, setFaturamento] = useState('');
+  const [tagManual, setTagManual] = useState('');
+  const [momentoAtual, setMomentoAtual] = useState('');
+  const [valorInvestimento, setValorInvestimento] = useState('');
 
   useEffect(() => {
     if (lead && open) {
@@ -30,6 +33,9 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
       setWhatsapp(lead.whatsapp || '');
       setInstagram(lead.instagram || '');
       setFaturamento(lead.faturamento || '');
+      setTagManual(lead.tag_manual || '');
+      setMomentoAtual(lead.momento_atual || '');
+      setValorInvestimento(lead.valor_investimento || '');
     }
   }, [lead, open]);
 
@@ -48,6 +54,9 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
         whatsapp: whatsapp.trim(),
         instagram: instagram.trim() || null,
         faturamento: faturamento.trim() || null,
+        tag_manual: tagManual.trim() || null,
+        momento_atual: momentoAtual.trim() || null,
+        valor_investimento: valorInvestimento.trim() || null,
       };
 
       const { error } = await supabase
@@ -119,12 +128,41 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">{t('Faturamento')}</label>
-              <div className="relative">
-                <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Ex: 5000" value={faturamento} onChange={e => setFaturamento(e.target.value)} className="pl-9 bg-secondary border-none h-11" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground font-medium">{t('Faturamento')}</label>
+                <div className="relative">
+                  <DollarSign size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Ex: 5000" value={faturamento} onChange={e => setFaturamento(e.target.value)} className="pl-9 bg-secondary border-none h-11" />
+                </div>
               </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground font-medium">Tag / Origem</label>
+                <div className="relative">
+                  <Tag size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                  <Input placeholder="Ex: BIOGRAFIA" value={tagManual} onChange={e => setTagManual(e.target.value)} className="pl-9 bg-secondary border-none h-11" />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium">Seu momento atual</label>
+              <Input 
+                placeholder="Descreva o momento do lead" 
+                value={momentoAtual} 
+                onChange={e => setMomentoAtual(e.target.value)} 
+                className="bg-secondary border-none h-11" 
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs text-muted-foreground font-medium">Quanto está disposta a investir</label>
+              <Input 
+                placeholder="Valor ou descrição do investimento" 
+                value={valorInvestimento} 
+                onChange={e => setValorInvestimento(e.target.value)} 
+                className="bg-secondary border-none h-11" 
+              />
             </div>
           </div>
 
