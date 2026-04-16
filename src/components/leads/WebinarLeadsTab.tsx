@@ -194,25 +194,21 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
       )}
 
       {/* Mobile Card View */}
-      <div className="md:hidden px-4 space-y-3">
+      <div className="md:hidden px-4 pt-3 pb-6 space-y-3">
         {isLoading ? (
           <div className="text-center py-16 text-muted-foreground">{t('Carregando...')}</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</div>
         ) : filtered.map(lead => (
-          <div key={lead.id} className="bg-secondary/50 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
+          <div key={lead.id} className="bg-card rounded-2xl overflow-hidden shadow-sm">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pt-4 pb-3">
               <div className="flex items-center gap-3 min-w-0">
                 <LeadAvatar name={lead.nome} />
                 <div className="min-w-0">
-                  <p className="font-medium text-foreground text-sm truncate">{lead.nome}</p>
+                  <p className="font-semibold text-foreground text-sm truncate">{lead.nome}</p>
                   {lead.instagram && (
-                    <a
-                      href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-muted-foreground hover:text-foreground"
-                    >
+                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                       @{lead.instagram.replace(/^@/, '')}
                     </a>
                   )}
@@ -220,52 +216,85 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {lead.whatsapp && (
-                  <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50 transition-colors">
+                  <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-xl hover:bg-muted/50 transition-colors">
                     <MessageCircle size={18} className="text-green-500" />
                   </button>
                 )}
-                <button
-                  onClick={() => { setEditLead(lead); setEditDialogOpen(true); }}
-                  className="p-2 rounded-lg hover:bg-muted/50 transition-colors"
-                  title={t('Editar Lead')}
-                >
+                <button onClick={() => { setEditLead(lead); setEditDialogOpen(true); }} className="p-2 rounded-xl hover:bg-muted/50 transition-colors">
                   <Edit2 size={18} className="text-muted-foreground" />
                 </button>
                 {!lead.assigned_to && (
-                  <Button
-                    size="sm"
-                    onClick={() => handleCollect(lead)}
-                    disabled={collectingId === lead.id}
-                    className="gap-1 rounded-lg text-xs h-8"
-                  >
+                  <Button size="sm" onClick={() => handleCollect(lead)} disabled={collectingId === lead.id} className="gap-1 rounded-xl text-xs h-8">
                     <CheckCircle size={14} />
                     {collectingId === lead.id ? t('...') : t('Coletar')}
                   </Button>
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-1.5 px-4 pb-3">
               <NeonStatusBadge status={lead.status} />
               {lead.faturamento && (
-                <span className="text-xs font-medium text-foreground bg-muted/50 px-2 py-0.5 rounded">
+                <span className="text-xs font-medium text-foreground bg-muted/60 px-2.5 py-1 rounded-full">
                   {isNaN(Number(lead.faturamento)) ? lead.faturamento : `R$ ${Number(lead.faturamento).toLocaleString('pt-BR')}`}
                 </span>
               )}
-              {lead.tag_manual || lead.webinar_date_tag ? (
-                <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">
+              {(lead.tag_manual || lead.webinar_date_tag) && (
+                <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
                   {lead.tag_manual || (
                     /^\d{4}-\d{2}-\d{2}$/.test(lead.webinar_date_tag)
                       ? format(parseISO(lead.webinar_date_tag), 'dd/MM')
                       : lead.webinar_date_tag
                   )}
                 </span>
-              ) : null}
+              )}
               {lead.created_at && (
-                <span className="text-xs text-muted-foreground">
+                <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">
                   {format(parseISO(lead.created_at), "dd MMM", { locale: ptBR })}
                 </span>
               )}
             </div>
+
+            {/* Footer: expand */}
+            <div className="flex items-center justify-end px-4 py-2.5 border-t border-border/30 bg-muted/20">
+              <button
+                onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {expandedId === lead.id ? <>{t('Menos')}<ChevronUp size={14} /></> : <>{t('Mais info')}<ChevronDown size={14} /></>}
+              </button>
+            </div>
+
+            {/* Expanded Details */}
+            {expandedId === lead.id && (
+              <div className="px-4 py-3 border-t border-border/30 grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">{t('Profissão')}</span>
+                  <span className="text-xs text-foreground">{lead.profissao || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">{t('Renda Familiar')}</span>
+                  <span className="text-xs text-foreground">{lead.renda_familiar || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">{t('Quem Investe')}</span>
+                  <span className="text-xs text-foreground">{lead.quem_investe || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">{t('Maior Dificuldade')}</span>
+                  <span className="text-xs text-foreground">{lead.maior_dificuldade || '—'}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] text-primary uppercase tracking-wider font-bold block mb-0.5">Momento Atual</span>
+                  <span className="text-xs text-foreground">{lead.momento_atual || '—'}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] text-primary uppercase tracking-wider font-bold block mb-0.5">Disposta a Investir</span>
+                  <span className="text-xs text-foreground">{lead.valor_investimento || '—'}</span>
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <NeonPagination showing={filtered.length} total={leads.length} />
