@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { Users, UserCheck, Download, Plus, Upload } from 'lucide-react';
+import { Users, UserCheck, Download, Plus, Upload, X } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
@@ -12,6 +12,7 @@ import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
 
 export default function Leads() {
   const { selectedProfile, isAdmin } = useProfileSelector();
+  const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
