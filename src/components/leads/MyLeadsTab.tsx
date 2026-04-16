@@ -107,8 +107,24 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
   };
 
   const updateLead = async (leadId: string, updates: Record<string, unknown>) => {
-    await supabase.from('leads').update({ ...updates, last_action_at: new Date().toISOString() } as any).eq('id', leadId);
+    const lead = leads.find(l => l.id === leadId);
+    const tableName = lead?.isAlicia ? 'leads_alicia' : 'leads';
+    
+    const normalizedUpdates = { ...updates };
+    if (lead?.isAlicia) {
+      if (normalizedUpdates.nome) {
+        normalizedUpdates.nombre = normalizedUpdates.nome;
+        delete normalizedUpdates.nome;
+      }
+      if (normalizedUpdates.faturamento) {
+        normalizedUpdates.facturacion_mensual = normalizedUpdates.faturamento;
+        delete normalizedUpdates.faturamento;
+      }
+    }
+
+    await supabase.from(tableName).update({ ...normalizedUpdates, last_action_at: new Date().toISOString() } as any).eq('id', leadId);
     queryClient.invalidateQueries({ queryKey: ['leads'] });
+    queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
     queryClient.invalidateQueries({ queryKey: ['lead_actions'] });
   };
 
@@ -847,6 +863,7 @@ export function MyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], pro
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         lead={editLead}
+        tableName={editLead?.isAlicia ? 'leads_alicia' : 'leads'}
       />
     </div>
   );

@@ -5,6 +5,7 @@ import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, UserCheck, Download, Plus } from 'lucide-react';
 import { WebinarLeadsTab } from '@/components/leads/WebinarLeadsTab';
+import { AliciaLeadsTab } from '@/components/leads/AliciaLeadsTab';
 import { MyLeadsTab } from '@/components/leads/MyLeadsTab';
 import { NewLeadDialog } from '@/components/leads/NewLeadDialog';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
@@ -19,6 +20,14 @@ export default function Leads() {
     queryKey: ['leads'],
     queryFn: async () => {
       const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
+      return data || [];
+    },
+  });
+
+  const { data: aliciaLeads = [], isLoading: aliciaLoading } = useQuery({
+    queryKey: ['leads_alicia'],
+    queryFn: async () => {
+      const { data } = await supabase.from('leads_alicia').select('*').order('created_at', { ascending: false });
       return data || [];
     },
   });
@@ -54,17 +63,26 @@ export default function Leads() {
     }
   });
 
+  const normalizedAliciaLeads = aliciaLeads.map(l => ({
+    ...l,
+    nome: l.nombre,
+    faturamento: l.facturacion_mensual,
+    isAlicia: true // flag para saber a origem se necessário
+  }));
+
   const webinarLeads = allLeads.filter(l => !l.assigned_to);
+  const aliciaLeadsDisponiveis = normalizedAliciaLeads.filter(l => !l.assigned_to);
   const collectedLeads = allLeads.filter(l => !!l.assigned_to);
+  const collectedAliciaLeads = normalizedAliciaLeads.filter(l => !!l.assigned_to);
   const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
 
   const myLeads = isGlobalAdminView
-    ? collectedLeads
-    : allLeads.filter(l => l.assigned_to === selectedProfile.id);
+    ? [...collectedLeads, ...collectedAliciaLeads]
+    : [...allLeads.filter(l => l.assigned_to === selectedProfile.id), ...normalizedAliciaLeads.filter(l => l.assigned_to === selectedProfile.id)];
 
-  const totalLeads = allLeads.length;
-  const coletados = collectedLeads.length;
-  const pendentes = webinarLeads.length;
+  const totalLeads = allLeads.length + aliciaLeads.length;
+  const coletados = collectedLeads.length + collectedAliciaLeads.length;
+  const pendentes = webinarLeads.length + aliciaLeadsDisponiveis.length;
 
   return (
     <div className="space-y-6">
@@ -169,6 +187,19 @@ export default function Leads() {
               <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
             )}
           </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab('alicia')}
+            className={`px-4 md:px-6 py-3 md:py-4 text-xs md:text-sm font-semibold transition-all relative flex-1 md:flex-none ${activeTab === 'alicia'
+                ? 'text-foreground'
+                : 'text-muted-foreground hover:text-foreground/70'
+              }`}
+          >
+            Leads Alicia
+            {activeTab === 'alicia' && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary shadow-[0_0_10px_hsl(var(--primary)/0.5)]"></div>
+            )}
+          </button>
         </div>
 
         <div>
@@ -177,6 +208,9 @@ export default function Leads() {
           )}
           {activeTab === 'webinar' && (
             <WebinarLeadsTab leads={webinarLeads} isLoading={isLoading} allLeads={allLeads} profileMap={profileMap} />
+          )}
+          {activeTab === 'alicia' && (
+            <AliciaLeadsTab leads={aliciaLeadsDisponiveis} isLoading={aliciaLoading} profileMap={profileMap} />
           )}
         </div>
       </div>

@@ -12,9 +12,10 @@ interface EditLeadDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   lead: any;
+  tableName?: 'leads' | 'leads_alicia';
 }
 
-export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps) {
+export function EditLeadDialog({ open, onOpenChange, lead, tableName = 'leads' }: EditLeadDialogProps) {
   const queryClient = useQueryClient();
   const { t } = useLanguage();
   const [saving, setSaving] = useState(false);
@@ -26,6 +27,8 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
   const [tagManual, setTagManual] = useState('');
   const [momentoAtual, setMomentoAtual] = useState('');
   const [valorInvestimento, setValorInvestimento] = useState('');
+  const [pais, setPais] = useState('');
+  const [areaDeAtividade, setAreaDeAtividade] = useState('');
 
   useEffect(() => {
     if (lead && open) {
@@ -36,6 +39,8 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
       setTagManual(lead.tag_manual || '');
       setMomentoAtual(lead.momento_atual || '');
       setValorInvestimento(lead.valor_investimento || '');
+      setPais(lead.pais || '');
+      setAreaDeAtividade(lead.area_de_atividade || lead.nombre_form || ''); // fallback
     }
   }, [lead, open]);
 
@@ -57,15 +62,33 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
         tag_manual: tagManual.trim() || null,
         momento_atual: momentoAtual.trim() || null,
         valor_investimento: valorInvestimento.trim() || null,
+        pais: pais.trim() || null,
+        area_de_atividade: areaDeAtividade.trim() || null,
       };
 
-      const { error } = await supabase
-        .from('leads')
-        .update(payload as any)
-        .eq('id', lead.id);
+      if (tableName === 'leads_alicia') {
+        const payloadAlicia: Record<string, unknown> = {
+          nombre: nome.trim(),
+          whatsapp: whatsapp.trim(),
+          instagram: instagram.trim() || null,
+          facturacion_mensual: faturamento.trim() || null,
+          pais: pais.trim() || null,
+          area_de_atividade: areaDeAtividade.trim() || null,
+        };
+        const { error } = await supabase
+          .from('leads_alicia')
+          .update(payloadAlicia as any)
+          .eq('id', lead.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('leads')
+          .update(payload as any)
+          .eq('id', lead.id);
+        if (error) throw error;
+      }
 
-      if (error) throw error;
-
+      queryClient.invalidateQueries({ queryKey: [tableName] });
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-leads'] });
       toast.success('Lead editado com sucesso! ✅');
@@ -145,25 +168,50 @@ export function EditLeadDialog({ open, onOpenChange, lead }: EditLeadDialogProps
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Seu momento atual</label>
-              <Input 
-                placeholder="Descreva o momento do lead" 
-                value={momentoAtual} 
-                onChange={e => setMomentoAtual(e.target.value)} 
-                className="bg-secondary border-none h-11" 
-              />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground font-medium">País</label>
+                <Input 
+                  placeholder="Ex: Spain, Brasil..." 
+                  value={pais} 
+                  onChange={e => setPais(e.target.value)} 
+                  className="bg-secondary border-none h-11" 
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs text-muted-foreground font-medium">Área de Atividade</label>
+                <Input 
+                  placeholder="Ex: Peluquera, Esteticista..." 
+                  value={areaDeAtividade} 
+                  onChange={e => setAreaDeAtividade(e.target.value)} 
+                  className="bg-secondary border-none h-11" 
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-xs text-muted-foreground font-medium">Quanto está disposta a investir</label>
-              <Input 
-                placeholder="Valor ou descrição do investimento" 
-                value={valorInvestimento} 
-                onChange={e => setValorInvestimento(e.target.value)} 
-                className="bg-secondary border-none h-11" 
-              />
-            </div>
+            {tableName === 'leads' && (
+              <>
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground font-medium">Seu momento atual</label>
+                  <Input 
+                    placeholder="Descreva o momento do lead" 
+                    value={momentoAtual} 
+                    onChange={e => setMomentoAtual(e.target.value)} 
+                    className="bg-secondary border-none h-11" 
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs text-muted-foreground font-medium">Quanto está disposta a investir</label>
+                  <Input 
+                    placeholder="Valor ou descrição do investimento" 
+                    value={valorInvestimento} 
+                    onChange={e => setValorInvestimento(e.target.value)} 
+                    className="bg-secondary border-none h-11" 
+                  />
+                </div>
+              </>
+            )}
           </div>
 
           <div className="shrink-0 p-6 pt-3 bg-secondary/30 border-t border-border mt-auto">
