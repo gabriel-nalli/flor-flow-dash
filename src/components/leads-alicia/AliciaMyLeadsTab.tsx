@@ -241,20 +241,21 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
       )}
 
       {/* Mobile Card View */}
-      <div className="md:hidden px-4 space-y-3">
+      <div className="md:hidden px-4 pt-3 pb-6 space-y-3">
         {isLoading ? (
           <div className="text-center py-16 text-muted-foreground">{t('Carregando...')}</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead encontrado')}</div>
         ) : filtered.map(lead => (
-          <div key={lead.id} className="bg-secondary/50 rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between">
+          <div key={lead.id} className="bg-secondary/50 rounded-2xl overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-4 pt-4 pb-3">
               <div className="flex items-center gap-3 min-w-0">
                 <LeadAvatar name={lead.nombre} />
                 <div className="min-w-0">
-                  <p className="font-medium text-foreground text-sm truncate">{lead.nombre}</p>
+                  <p className="font-semibold text-foreground text-sm truncate">{lead.nombre}</p>
                   {lead.instagram && (
-                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground">
+                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
                       @{lead.instagram.replace(/^@/, '')}
                     </a>
                   )}
@@ -262,13 +263,13 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
               </div>
               <div className="flex items-center gap-1 shrink-0">
                 {lead.whatsapp && (
-                  <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-lg hover:bg-muted/50">
+                  <button onClick={() => handleWhatsApp(lead)} className="p-2 rounded-xl hover:bg-muted/50">
                     <MessageCircle size={18} className="text-green-500" />
                   </button>
                 )}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="p-2 rounded-lg hover:bg-muted/50">
+                    <button className="p-2 rounded-xl hover:bg-muted/50">
                       <MoreHorizontal size={18} className="text-muted-foreground" />
                     </button>
                   </DropdownMenuTrigger>
@@ -316,16 +317,70 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                 </DropdownMenu>
               </div>
             </div>
-            <div className="flex flex-wrap items-center gap-2">
+
+            {/* Badges */}
+            <div className="flex flex-wrap items-center gap-1.5 px-4 pb-3">
               <NeonStatusBadge status={lead.status} />
               {lead.facturacion_mensual && (
-                <span className="text-xs font-medium text-foreground bg-muted/50 px-2 py-0.5 rounded">{lead.facturacion_mensual}</span>
+                <span className="text-xs font-medium text-foreground bg-muted/60 px-2.5 py-1 rounded-full">{lead.facturacion_mensual}</span>
               )}
               {(lead.source_tag || lead.webinar_date_tag) && (
-                <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">{lead.source_tag || lead.webinar_date_tag}</span>
+                <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full">{lead.source_tag || lead.webinar_date_tag}</span>
               )}
             </div>
-            <LeadPipelineStages completedActions={actionsByLead[lead.id] || []} />
+
+            {/* Pipeline */}
+            <div className="px-4 pb-3">
+              <LeadPipelineStages completedActions={actionsByLead[lead.id] || []} />
+            </div>
+
+            {/* Footer: responsável + expand */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-muted/20">
+              {isAdmin && lead.assigned_to
+                ? <span className="text-xs text-muted-foreground">{profileMap[lead.assigned_to] || '—'}</span>
+                : <span />
+              }
+              <button
+                onClick={() => setExpandedId(expandedId === lead.id ? null : lead.id)}
+                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {expandedId === lead.id ? <>{t('Menos')}<ChevronUp size={14} /></> : <>{t('Mais info')}<ChevronDown size={14} /></>}
+              </button>
+            </div>
+
+            {/* Expanded Details */}
+            {expandedId === lead.id && (
+              <div className="px-4 py-3 bg-muted/10 grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">País</span>
+                  <span className="text-xs text-foreground">{lead.pais || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">Área de Atividade</span>
+                  <span className="text-xs text-foreground">{lead.area_de_atividade || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">Tiempo de experiencia</span>
+                  <span className="text-xs text-foreground">{lead.tiempo_experiencia || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">Cantidad de empleados</span>
+                  <span className="text-xs text-foreground">{lead.cantidad_empleados || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">Plan concreto</span>
+                  <span className="text-xs text-foreground">{lead.plan_concreto || '—'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-0.5">Mayor obstáculo</span>
+                  <span className="text-xs text-foreground">{lead.mayor_obstaculo || '—'}</span>
+                </div>
+                <div className="col-span-2">
+                  <span className="text-[10px] text-primary uppercase tracking-wider font-bold block mb-0.5">Tiempo para resultados</span>
+                  <span className="text-xs text-foreground">{lead.tiempo_resultados || '—'}</span>
+                </div>
+              </div>
+            )}
           </div>
         ))}
         <NeonPagination showing={filtered.length} total={leads.length} />
