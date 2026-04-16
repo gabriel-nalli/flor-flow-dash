@@ -67,7 +67,7 @@ export default function Leads() {
 
   const isGlobalAdminView = isAdmin && selectedProfile.role === 'ADMIN';
 
-  const myThaylorLeads = isGlobalAdminView 
+  const myThaylorLeads = isGlobalAdminView
     ? allLeads.filter(l => !!l.assigned_to)
     : allLeads.filter(l => l.assigned_to === selectedProfile.id);
 
@@ -124,7 +124,7 @@ export default function Leads() {
       <div className="bg-card rounded-2xl overflow-hidden shadow-xl border border-white/5">
         <div className="flex bg-background/50 border-b border-white/5">
           <TabButton active={activeTab === 'meus'} onClick={() => setActiveTab('meus')}>
-            {isGlobalAdminView ? 'Leads Coletados' : 'Meus Leads'}
+            {isGlobalAdminView ? 'Leads Coletados Thaylor' : 'Meus Leads Thaylor'}
           </TabButton>
           <TabButton active={activeTab === 'webinar'} onClick={() => setActiveTab('webinar')}>
             Leads Disponíveis
@@ -136,26 +136,26 @@ export default function Leads() {
 
         <div className="p-0">
           {activeTab === 'meus' && (
-            <MyLeadsTab 
-              leads={myThaylorLeads} 
-              isLoading={thaylorLoading} 
+            <MyLeadsTab
+              leads={myThaylorLeads}
+              isLoading={thaylorLoading}
               actionsByLead={actionsByLead}
-              profileMap={profileMap} 
+              profileMap={profileMap}
               allLeads={allLeads}
             />
           )}
 
           {activeTab === 'webinar' && (
-            <WebinarLeadsTab 
-              leads={availableThaylorLeads} 
-              isLoading={thaylorLoading} 
+            <WebinarLeadsTab
+              leads={availableThaylorLeads}
+              isLoading={thaylorLoading}
             />
           )}
 
           {activeTab === 'alicia' && (
-            <AliciaLeadsTab 
-              leads={aliciaLeadsTabContent} 
-              isLoading={aliciaLoading} 
+            <AliciaLeadsTab
+              leads={aliciaLeadsTabContent}
+              isLoading={aliciaLoading}
               profileMap={profileMap}
               vendedoras={profiles}
             />
@@ -173,9 +173,8 @@ function TabButton({ children, active, onClick }: { children: React.ReactNode, a
     <button
       type="button"
       onClick={onClick}
-      className={`px-6 py-4 text-xs font-bold transition-all relative flex items-center ${
-        active ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground/70'
-      }`}
+      className={`px-6 py-4 text-xs font-bold transition-all relative flex items-center ${active ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-foreground/70'
+        }`}
     >
       {children}
     </button>

@@ -15,7 +15,10 @@ export function AppSidebar() {
 
   const menuItems = [
     { icon: LayoutDashboard, label: t('Dashboard'), path: '/' },
-    { icon: Users, label: t('Leads'), path: '/leads' },
+    // BR operation or admin: show regular Leads
+    ...(isAdmin || selectedProfile.operation !== 'ES' ? [{ icon: Users, label: 'Leads - Thaylor', path: '/leads' }] : []),
+    // ES operation or admin or BR operation: show Leads Alicia
+    ...(isAdmin || selectedProfile.operation === 'ES' || selectedProfile.operation === 'BR' ? [{ icon: Users, label: 'Leads - Alicia', path: '/leads-alicia' }] : []),
     { icon: CheckSquare, label: t('Rotina'), path: '/routine' },
     ...(isAdmin ? [
       { icon: Filter, label: t('Funil Webinário'), path: '/funil-webinar' },
