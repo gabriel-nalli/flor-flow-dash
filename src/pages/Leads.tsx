@@ -150,6 +150,28 @@ export default function Leads() {
             <Plus size={14} />
             {t('Novo Lead')}
           </button>
+          <button
+            type="button"
+            onClick={async () => {
+              if (confirm('Tem certeza que deseja deletar todos os leads da tag NOVO FORMS THAYLOR?')) {
+                const { error } = await supabase
+                  .from('leads')
+                  .delete()
+                  .eq('webinar_date_tag', 'NOVO FORMS THAYLOR');
+                
+                if (error) {
+                  toast.error('Erro ao deletar: ' + error.message);
+                } else {
+                  toast.success('Leads deletados com sucesso! ✅');
+                  queryClient.invalidateQueries({ queryKey: ['leads'] });
+                }
+              }
+            }}
+            className="flex items-center gap-2 bg-destructive hover:bg-destructive/90 text-destructive-foreground px-4 py-2 rounded-lg transition-all text-sm font-bold"
+          >
+            <X size={14} />
+            DELETAR IMPORTAÇÃO
+          </button>
         </div>
       </div>
 
