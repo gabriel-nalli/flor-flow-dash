@@ -1,17 +1,19 @@
-import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign } from 'lucide-react';
+import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign, Bell, BellOff } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import logoBelaflor from '@/assets/logo-belaflor.svg';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader,
+  SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarHeader, SidebarFooter,
 } from '@/components/ui/sidebar';
 export function AppSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin, selectedProfile } = useProfileSelector();
   const { t } = useLanguage();
+  const { isSupported, isSubscribed, subscribe, unsubscribe, loading } = usePushNotifications();
 
   const menuItems = [
     { icon: LayoutDashboard, label: t('Dashboard'), path: '/' },
@@ -63,6 +65,18 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      {isSupported && (
+        <SidebarFooter className="p-3">
+          <SidebarMenuButton
+            onClick={isSubscribed ? unsubscribe : subscribe}
+            disabled={loading}
+            className="w-full"
+          >
+            {isSubscribed ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
+            <span>{isSubscribed ? 'Notificações ativas' : 'Ativar notificações'}</span>
+          </SidebarMenuButton>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
