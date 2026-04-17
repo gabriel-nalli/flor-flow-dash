@@ -95,7 +95,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         .select();
       if (error) throw error;
       if (data && data.length > 0) {
-        await supabase.from('lead_actions').insert([{ lead_id: lead.id, action_type: 'lead_collected', action_metadata: {} as any }]);
+        await supabase.from('lead_actions').insert([{ lead_id: lead.id, action_type: 'lead_collected', user_id: selectedProfile.id, action_metadata: {} as any }]);
         queryClient.invalidateQueries({ queryKey: ['leads'] });
         toast.success('Lead coletado com sucesso! ✅');
       } else {
