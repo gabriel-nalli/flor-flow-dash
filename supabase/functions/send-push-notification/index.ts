@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    const operacaoLabel = operacao ? ` [${operacao}]` : ''
+    const operacaoLabel = operacao ? ` OP ${operacao}` : ''
     const payload = JSON.stringify({
       title: `Novo lead disponível!${operacaoLabel}`,
       body: lead_nome ? `Nome: ${lead_nome}` : 'Um novo lead está aguardando atendimento.',
