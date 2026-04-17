@@ -12,7 +12,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EditLeadDialog } from '@/components/leads/EditLeadDialog';
-import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
+import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonSelectWrapper } from './NeonLeadComponents';
 import { useLanguage } from '@/contexts/LanguageContext';
 
 interface WebinarLeadsTabProps {
@@ -337,7 +337,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             )}
           </div>
         ))}
-        <NeonPagination showing={filtered.length} total={leads.length} />
+        
       </div>
 
       {/* Desktop Table View */}
@@ -493,9 +493,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
             ))}
           </tbody>
         </table>
-        <div className="hidden md:block">
-          <NeonPagination showing={filtered.length} total={leads.length} />
-        </div>
+
       </NeonTableWrapper>
 
       <EditLeadDialog

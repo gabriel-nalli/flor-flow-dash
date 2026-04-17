@@ -8,7 +8,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
-import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
+import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWrapper } from '../leads/NeonLeadComponents';
 import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -412,7 +412,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
             )}
           </div>
         ))}
-        <NeonPagination showing={filtered.length} total={leads.length} />
+        
       </div>
 
       {/* Desktop Table View */}
@@ -634,9 +634,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
             ))}
           </tbody>
         </table>
-        <div className="hidden md:block">
-          <NeonPagination showing={filtered.length} total={leads.length} />
-        </div>
+
       </NeonTableWrapper>
 
       <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>

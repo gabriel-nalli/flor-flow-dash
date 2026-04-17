@@ -10,7 +10,7 @@ import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
+import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWrapper } from '../leads/NeonLeadComponents';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 
@@ -227,7 +227,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
             </div>
           </div>
         ))}
-        <NeonPagination showing={filtered.length} total={leads.length} />
+        
       </div>
 
       {/* Desktop Table View */}
@@ -360,9 +360,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
             ))}
           </tbody>
         </table>
-        <div className="hidden md:block">
-          <NeonPagination showing={filtered.length} total={leads.length} />
-        </div>
+
       </NeonTableWrapper>
     </div>
   );

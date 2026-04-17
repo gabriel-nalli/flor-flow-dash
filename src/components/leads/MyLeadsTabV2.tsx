@@ -10,7 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
-import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
+import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWrapper } from './NeonLeadComponents';
 import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -495,7 +495,7 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
             )}
           </div>
         ))}
-        <NeonPagination showing={filtered.length} total={leads.length} />
+        
       </div>
 
       {/* Desktop Table View */}
@@ -621,9 +621,7 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
             ))}
           </tbody>
         </table>
-        <div className="hidden md:block">
-          <NeonPagination showing={filtered.length} total={leads.length} />
-        </div>
+
       </NeonTableWrapper>
 
       <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
