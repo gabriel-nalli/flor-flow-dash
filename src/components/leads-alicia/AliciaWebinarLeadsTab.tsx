@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Calendar as CalendarIcon, Phone, Search, X, Instagram, ExternalLink, Calendar as CalendarIcon2, DollarSign, Tag, MessageCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calendar as CalendarIcon, Phone, Search, X, Instagram, ExternalLink, Calendar as CalendarIcon2, DollarSign, Tag, MessageCircle, CheckCircle, AlertTriangle, ChevronDown, ChevronUp, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -51,7 +51,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
   });
 
   const handleDelete = async (lead: any) => {
-    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nome}"? Esta ação não pode ser desfeita.`)) {
+    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nombre}"? Esta ação não pode ser desfeita.`)) {
       return;
     }
 
