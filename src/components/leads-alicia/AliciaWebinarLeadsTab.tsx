@@ -221,7 +221,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                 <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded">{lead.source_tag || lead.webinar_date_tag}</span>
               )}
               {lead.created_at && (
-                <span className="text-xs text-muted-foreground">{format(parseISO(lead.created_at), "dd MMM", { locale: ptBR })}</span>
+                <span className="text-xs text-muted-foreground bg-muted/60 px-2.5 py-1 rounded-full whitespace-nowrap">{format(parseISO(lead.created_at), "dd MMM · HH:mm", { locale: ptBR })}</span>
               )}
             </div>
           </div>
@@ -277,7 +277,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                     </span>
                   </td>
                   <td className="px-4 py-4 text-sm text-muted-foreground">
-                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM", { locale: ptBR }) : '—'}
+                    {lead.created_at ? format(parseISO(lead.created_at), "dd MMM · HH:mm", { locale: ptBR }) : '—'}
                   </td>
                   <td className="px-4 py-4">
                     <NeonStatusBadge status={lead.status} />
