@@ -1,6 +1,9 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import webpush from 'npm:web-push@3.6.7'
 
+const VAPID_PUBLIC_KEY = 'BOigPuMKj1-eY6UyAlZuZxc5lrwE4VuL6BlqbQdy7U_N7FzuiSOcacAPI20fpynCNXhTUdxRATTeT_jdQZFBJMk'
+const VAPID_EMAIL = 'mailto:gabrielnalli70@gmail.com'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -14,26 +17,32 @@ Deno.serve(async (req) => {
   try {
     const { lead_id, lead_nome } = await req.json()
 
-    const vapidPublicKey = Deno.env.get('VAPID_PUBLIC_KEY')!
-    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')!
-    const vapidEmail = Deno.env.get('VAPID_EMAIL')!
-
-    webpush.setVapidDetails(`mailto:${vapidEmail}`, vapidPublicKey, vapidPrivateKey)
-
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Fetch all subscriptions for VENDEDORA and SDR
-    const { data: subscriptions, error } = await supabase
-      .from('push_subscriptions')
-      .select('subscription, user_id, profiles!inner(role)')
-      .in('profiles.role', ['VENDEDORA', 'SDR'])
+    const vapidPrivateKey = Deno.env.get('VAPID_PRIVATE_KEY')
+    if (!vapidPrivateKey) {
+      throw new Error('VAPID_PRIVATE_KEY not set in Edge Function Secrets')
+    }
 
-    if (error) throw error
-    if (!subscriptions?.length) {
-      return new Response(JSON.stringify({ ok: true, sent: 0 }), {
+    webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC_KEY, vapidPrivateKey)
+
+    // Fetch subscriptions for VENDEDORA and SDR roles
+    const { data: subscriptions, error: subError } = await supabase
+      .from('push_subscriptions')
+      .select('endpoint, p256dh, auth, user_id, profiles!inner(role)')
+
+    if (subError) throw subError
+
+    // Filter by role in JS (safer than relying on PostgREST join filter)
+    const filtered = (subscriptions ?? []).filter((row: any) =>
+      row.profiles?.role === 'VENDEDORA' || row.profiles?.role === 'SDR'
+    )
+
+    if (!filtered.length) {
+      return new Response(JSON.stringify({ ok: true, sent: 0, reason: 'no subscribers' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -45,12 +54,20 @@ Deno.serve(async (req) => {
     })
 
     const results = await Promise.allSettled(
-      subscriptions.map((row) => webpush.sendNotification(row.subscription, payload))
+      filtered.map((row: any) =>
+        webpush.sendNotification(
+          { endpoint: row.endpoint, keys: { p256dh: row.p256dh, auth: row.auth } },
+          payload
+        )
+      )
     )
 
     const sent = results.filter((r) => r.status === 'fulfilled').length
+    const failed = results
+      .filter((r) => r.status === 'rejected')
+      .map((r: any) => r.reason?.message)
 
-    return new Response(JSON.stringify({ ok: true, sent, total: subscriptions.length }), {
+    return new Response(JSON.stringify({ ok: true, sent, total: filtered.length, failed }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err) {
