@@ -27,7 +27,7 @@ BEGIN
   IF NEW.assigned_to IS NULL THEN
     PERFORM net.http_post(
       url := 'https://vnrfzgbqiagxidcaeanr.supabase.co/functions/v1/send-push-notification',
-      body := jsonb_build_object('lead_id', NEW.id, 'lead_nome', NEW.nome, 'operacao', 'Alicia'),
+      body := jsonb_build_object('lead_id', NEW.id, 'lead_nome', NEW.nombre, 'operacao', 'Alicia'),
       headers := '{"Content-Type": "application/json"}'::jsonb
     );
   END IF;
