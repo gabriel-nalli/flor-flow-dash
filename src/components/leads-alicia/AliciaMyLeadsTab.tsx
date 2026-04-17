@@ -68,7 +68,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
   );
 
   const logAction = async (leadId: string, actionType: string) => {
-    await supabase.from('lead_actions').insert([{ lead_id: leadId, action_type: actionType, action_metadata: {} as any }]);
+    await supabase.from('lead_actions').insert([{ lead_id: leadId, action_type: actionType, user_id: selectedProfile.id, action_metadata: {} as any }]);
   };
 
   const updateLead = async (leadId: string, updates: Record<string, unknown>) => {

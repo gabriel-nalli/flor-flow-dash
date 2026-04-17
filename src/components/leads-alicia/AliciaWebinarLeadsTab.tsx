@@ -82,6 +82,7 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
         .select();
       if (error) throw error;
       if (data && data.length > 0) {
+        await supabase.from('lead_actions').insert([{ lead_id: lead.id, action_type: 'lead_collected', user_id: selectedProfile.id, action_metadata: {} as any }]);
         queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
         toast.success('Lead coletado com sucesso! ✅');
       } else {
