@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { lead_id, lead_nome } = await req.json()
+    const { lead_id, lead_nome, operacao } = await req.json()
 
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
@@ -60,10 +60,11 @@ Deno.serve(async (req) => {
       })
     }
 
+    const operacaoLabel = operacao ? ` [${operacao}]` : ''
     const payload = JSON.stringify({
-      title: 'Novo lead disponível!',
+      title: `Novo lead disponível!${operacaoLabel}`,
       body: lead_nome ? `Nome: ${lead_nome}` : 'Um novo lead está aguardando atendimento.',
-      url: '/leads',
+      url: operacao === 'Alicia' ? '/leads-alicia' : '/leads',
     })
 
     const results = await Promise.allSettled(
