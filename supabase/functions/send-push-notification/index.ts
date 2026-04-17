@@ -32,14 +32,27 @@ Deno.serve(async (req) => {
     // Fetch subscriptions for VENDEDORA and SDR roles
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select('endpoint, p256dh, auth, user_id, profiles_dash!inner(role)')
+      .select('endpoint, p256dh, auth, user_id')
 
     if (subError) throw subError
+    if (!subscriptions?.length) {
+      return new Response(JSON.stringify({ ok: true, sent: 0, reason: 'no subscriptions' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
 
-    // Filter by role in JS
-    const filtered = (subscriptions ?? []).filter((row: any) =>
-      ['VENDEDORA', 'SDR', 'ADMIN'].includes(row.profiles_dash?.role)
-    )
+    const userIds = subscriptions.map((s: any) => s.user_id)
+
+    const { data: profiles, error: profilesError } = await supabase
+      .from('profiles_dash')
+      .select('id, role')
+      .in('id', userIds)
+      .in('role', ['VENDEDORA', 'SDR', 'ADMIN'])
+
+    if (profilesError) throw profilesError
+
+    const allowedIds = new Set((profiles ?? []).map((p: any) => p.id))
+    const filtered = subscriptions.filter((s: any) => allowedIds.has(s.user_id))
 
     if (!filtered.length) {
       return new Response(JSON.stringify({ ok: true, sent: 0, reason: 'no subscribers' }), {
