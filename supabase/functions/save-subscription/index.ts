@@ -25,9 +25,20 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    const endpoint = subscription.endpoint
+    const p256dh = subscription.keys?.p256dh
+    const auth = subscription.keys?.auth
+
+    if (!endpoint || !p256dh || !auth) {
+      return new Response(JSON.stringify({ error: 'subscription inválida — faltam campos' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
     const { error } = await supabase
       .from('push_subscriptions')
-      .upsert({ user_id, subscription }, { onConflict: 'user_id' })
+      .upsert({ user_id, endpoint, p256dh, auth }, { onConflict: 'user_id' })
 
     if (error) throw error
 
