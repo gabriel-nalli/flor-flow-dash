@@ -50,6 +50,27 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
     return true;
   });
 
+  const handleDelete = async (lead: any) => {
+    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nome}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('leads_alicia')
+        .delete()
+        .eq('id', lead.id);
+
+      if (error) throw error;
+
+      toast.success('Lead apagado com sucesso.');
+      queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
+    } catch (error) {
+      console.error('Erro ao apagar lead:', error);
+      toast.error('Erro ao apagar lead. Tente novamente.');
+    }
+  };
+
   const handleCollect = async (lead: any) => {
     setCollectingId(lead.id);
     try {
@@ -181,6 +202,14 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                     {collectingId === lead.id ? '...' : t('Coletar')}
                   </Button>
                 )}
+                {isAdmin && (
+                  <button 
+                    onClick={() => handleDelete(lead)} 
+                    className="p-2 rounded-xl hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 size={18} className="text-destructive/70 hover:text-destructive" />
+                  </button>
+                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">
@@ -277,6 +306,15 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                           <CheckCircle size={14} />
                           {collectingId === lead.id ? t('Coletando...') : t('Coletar')}
                         </Button>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(lead)}
+                          className="p-2 rounded-lg hover:bg-destructive/10 transition-colors"
+                          title={t('Apagar Lead')}
+                        >
+                          <Trash2 size={16} className="text-destructive/70 hover:text-destructive" />
+                        </button>
                       )}
                     </div>
                   </td>

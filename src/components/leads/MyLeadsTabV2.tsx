@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from './NeonLeadComponents';
-import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2 } from 'lucide-react';
+import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO } from 'date-fns';
@@ -162,6 +162,27 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
     setSaleDialogOpen(false); setSaleDialogLead(null);
   };
 
+  const handleDelete = async (lead: any) => {
+    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nome}" permanentemente? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', lead.id);
+
+      if (error) throw error;
+
+      toast.success('Lead apagado permanentemente.');
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    } catch (error) {
+      console.error('Erro ao apagar lead:', error);
+      toast.error('Erro ao apagar lead. Tente novamente.');
+    }
+  };
+
   const getDerivedActions = (lead: any, originalActions: string[]) => {
     const s = new Set(originalActions);
     if (lead.status === 'contato_1_feito') s.add('whatsapp_sent');
@@ -257,6 +278,14 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
       )}
       {isAdmin && lead.assigned_to && (
         <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => { setReassignLead(lead); setReassignTo(lead.assigned_to || ''); setReassignDialogOpen(true); }}><UserCheck className="w-4 h-4 mr-2" /> {t('Trocar Responsável')}</DropdownMenuItem></>
+      )}
+      {isAdmin && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => handleDelete(lead)} className="text-destructive font-bold">
+            <Trash2 className="w-4 h-4 mr-2" /> {t('Apagar Lead permanentemente')}
+          </DropdownMenuItem>
+        </>
       )}
     </DropdownMenuContent>
   );

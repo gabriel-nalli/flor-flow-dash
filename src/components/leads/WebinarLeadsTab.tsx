@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp, Edit2 } from 'lucide-react';
+import { Search, Instagram, DollarSign, Tag, Calendar as CalendarIcon2, MessageCircle, CheckCircle, AlertTriangle, MoreHorizontal, X, ChevronDown, ChevronUp, Edit2, Trash2 } from 'lucide-react';
 import { WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
 import { format, parseISO } from 'date-fns';
@@ -113,6 +113,27 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
     const msg = WHATSAPP_TEMPLATE_THAYLOR.replace('{NOME_DA_VENDEDORA}', selectedProfile.full_name);
     const phone = lead.whatsapp?.replace(/\D/g, '') || '';
     window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank');
+  };
+
+  const handleDelete = async (lead: any) => {
+    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nome}"? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .eq('id', lead.id);
+
+      if (error) throw error;
+
+      toast.success('Lead apagado com sucesso.');
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    } catch (error) {
+      console.error('Erro ao apagar lead:', error);
+      toast.error('Erro ao apagar lead. Tente novamente.');
+    }
   };
 
   const clearFilters = () => {
@@ -230,6 +251,14 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     <CheckCircle size={14} />
                     {collectingId === lead.id ? t('...') : t('Coletar')}
                   </Button>
+                )}
+                {isAdmin && (
+                  <button 
+                    onClick={() => handleDelete(lead)} 
+                    className="p-2 rounded-xl hover:bg-destructive/10 transition-colors"
+                  >
+                    <Trash2 size={18} className="text-destructive/70 hover:text-destructive" />
+                  </button>
                 )}
               </div>
             </div>
@@ -415,6 +444,15 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                           <CheckCircle size={14} />
                           {collectingId === lead.id ? t('Coletando...') : t('Coletar')}
                         </Button>
+                      )}
+                      {isAdmin && (
+                        <button
+                          onClick={() => handleDelete(lead)}
+                          className="p-2 rounded-lg hover:bg-destructive/10 transition-colors"
+                          title={t('Apagar Lead')}
+                        >
+                          <Trash2 size={16} className="text-destructive/70 hover:text-destructive" />
+                        </button>
                       )}
                     </div>
                   </td>

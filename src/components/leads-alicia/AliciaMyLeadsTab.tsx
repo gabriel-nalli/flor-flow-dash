@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonPagination, NeonSelectWrapper } from '../leads/NeonLeadComponents';
-import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck, ExternalLink } from 'lucide-react';
+import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, ChevronDown, ChevronUp, Undo2, UserCheck, ExternalLink, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 import { toast } from 'sonner';
 import { isToday, parseISO, format } from 'date-fns';
@@ -104,6 +104,27 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
     await logAction(lead.id, actionType);
     await updateLead(lead.id, { status: newStatus });
     toast.success(`Status → ${STATUS_CONFIG[newStatus]?.label || newStatus}`);
+  };
+
+  const handleDelete = async (lead: any) => {
+    if (!window.confirm(`Tem certeza que deseja apagar o lead "${lead.nombre}" permanentemente? Esta ação não pode ser desfeita.`)) {
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('leads_alicia')
+        .delete()
+        .eq('id', lead.id);
+
+      if (error) throw error;
+
+      toast.success('Lead apagado permanentemente.');
+      queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
+    } catch (error) {
+      console.error('Erro ao apagar lead:', error);
+      toast.error('Erro ao apagar lead. Tente novamente.');
+    }
   };
 
   const openSaleDialog = (lead: any, type: 'won_call' | 'won_followup') => {
@@ -312,6 +333,14 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                     )}
                     {!['fechado_call', 'fechado_followup', 'perdido'].includes(lead.status) && (
                       <><DropdownMenuSeparator /><DropdownMenuItem onClick={() => { setLostDialogLead(lead); setLostDialogOpen(true); }} className="text-destructive"><XCircle className="w-4 h-4 mr-2" /> {t('Lead Perdido')}</DropdownMenuItem></>
+                    )}
+                    {isAdmin && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => handleDelete(lead)} className="text-destructive font-bold">
+                          <Trash2 className="w-4 h-4 mr-2" /> {t('Apagar Lead permanentemente')}
+                        </DropdownMenuItem>
+                      </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -549,6 +578,14 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
                                 setReassignDialogOpen(true);
                               }}>
                                 <UserCheck className="w-4 h-4 mr-2" /> {t('Trocar Responsável')}
+                              </DropdownMenuItem>
+                            </>
+                          )}
+                          {isAdmin && (
+                            <>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem onClick={() => handleDelete(lead)} className="text-destructive font-bold">
+                                <Trash2 className="w-4 h-4 mr-2" /> {t('Apagar Lead permanentemente')}
                               </DropdownMenuItem>
                             </>
                           )}
