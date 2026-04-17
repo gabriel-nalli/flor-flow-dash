@@ -32,13 +32,13 @@ Deno.serve(async (req) => {
     // Fetch subscriptions for VENDEDORA and SDR roles
     const { data: subscriptions, error: subError } = await supabase
       .from('push_subscriptions')
-      .select('endpoint, p256dh, auth, user_id, profiles!inner(role)')
+      .select('endpoint, p256dh, auth, user_id, profiles_dash!inner(role)')
 
     if (subError) throw subError
 
-    // Filter by role in JS (safer than relying on PostgREST join filter)
+    // Filter by role in JS
     const filtered = (subscriptions ?? []).filter((row: any) =>
-      row.profiles?.role === 'VENDEDORA' || row.profiles?.role === 'SDR'
+      ['VENDEDORA', 'SDR', 'ADMIN'].includes(row.profiles_dash?.role)
     )
 
     if (!filtered.length) {
