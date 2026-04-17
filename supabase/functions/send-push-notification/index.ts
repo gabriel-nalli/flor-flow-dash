@@ -45,13 +45,15 @@ Deno.serve(async (req) => {
 
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles_dash')
-      .select('id, role')
+      .select('id, role, operation')
       .in('id', userIds)
       .in('role', ['VENDEDORA', 'SDR', 'ADMIN'])
 
     if (profilesError) throw profilesError
 
-    const allowedIds = new Set((profiles ?? []).map((p: any) => p.id))
+    const allowedIds = new Set((profiles ?? []).filter((p: any) =>
+      p.operation === 'ALL' || p.operation === operacao
+    ).map((p: any) => p.id))
     const filtered = subscriptions.filter((s: any) => allowedIds.has(s.user_id))
 
     if (!filtered.length) {
