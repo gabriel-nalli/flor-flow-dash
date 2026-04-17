@@ -1,6 +1,3 @@
-// Precache manifest injected by vite-plugin-pwa at build time
-self.__WB_MANIFEST
-
 self.addEventListener('install', () => self.skipWaiting())
 self.addEventListener('activate', (event) => event.waitUntil(clients.claim()))
 
@@ -18,9 +15,9 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
+  const target = event.notification.data?.url || '/leads'
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      const target = data?.url || '/leads'
       for (const client of windowClients) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           client.navigate(target)
