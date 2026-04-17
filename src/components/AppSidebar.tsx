@@ -1,4 +1,5 @@
-import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign, Bell, BellOff } from 'lucide-react';
+import { Users, CheckSquare, LayoutDashboard, Target, Filter, DollarSign, Bell, BellOff, Send } from 'lucide-react';
+import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -14,6 +15,23 @@ export function AppSidebar() {
   const { isAdmin, selectedProfile } = useProfileSelector();
   const { t } = useLanguage();
   const { isSupported, isSubscribed, subscribe, unsubscribe, loading } = usePushNotifications();
+  const [testLoading, setTestLoading] = useState(false);
+
+  const sendTestNotification = async () => {
+    setTestLoading(true);
+    try {
+      const EDGE_BASE = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
+      const res = await fetch(`${EDGE_BASE}/send-push-notification`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lead_nome: 'Teste de notificação' }),
+      });
+      const data = await res.json();
+      console.log('[push test]', data);
+    } finally {
+      setTestLoading(false);
+    }
+  };
 
   const menuItems = [
     { icon: LayoutDashboard, label: t('Dashboard'), path: '/' },
@@ -66,7 +84,7 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       {isSupported && (
-        <SidebarFooter className="p-3">
+        <SidebarFooter className="p-3 flex flex-col gap-1">
           <SidebarMenuButton
             onClick={isSubscribed ? unsubscribe : subscribe}
             disabled={loading}
@@ -75,6 +93,16 @@ export function AppSidebar() {
             {isSubscribed ? <BellOff className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
             <span>{isSubscribed ? 'Notificações ativas' : 'Ativar notificações'}</span>
           </SidebarMenuButton>
+          {isAdmin && (
+            <SidebarMenuButton
+              onClick={sendTestNotification}
+              disabled={testLoading}
+              className="w-full"
+            >
+              <Send className="w-4 h-4" />
+              <span>{testLoading ? 'Enviando...' : 'Testar notificação'}</span>
+            </SidebarMenuButton>
+          )}
         </SidebarFooter>
       )}
     </Sidebar>
