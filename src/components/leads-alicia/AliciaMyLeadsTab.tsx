@@ -24,9 +24,10 @@ interface AliciaMyLeadsTabProps {
   actionsByLead: Record<string, string[]>;
   allLeads?: any[];
   profileMap?: Record<string, string>;
+  collectedAtMap?: Record<string, string>;
 }
 
-export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], profileMap: externalProfileMap }: AliciaMyLeadsTabProps) {
+export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [], profileMap: externalProfileMap, collectedAtMap = {} }: AliciaMyLeadsTabProps) {
   const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
@@ -170,9 +171,14 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
     } else if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
     if (isAdmin && sellerFilter !== 'all' && lead.assigned_to !== sellerFilter) return false;
     if (tagFilter !== 'all' && lead.source_tag !== tagFilter) return false;
-    if (dateFilter && lead.created_at) {
-      const leadDate = parseISO(lead.created_at).toDateString();
-      if (leadDate !== dateFilter.toDateString()) return false;
+    if (dateFilter) {
+      const dateToUse = collectedAtMap[lead.id] || lead.created_at;
+      if (dateToUse) {
+        const leadDate = parseISO(dateToUse).toDateString();
+        if (leadDate !== dateFilter.toDateString()) return false;
+      } else {
+        return false;
+      }
     }
     return true;
   });

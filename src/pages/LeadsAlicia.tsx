@@ -26,7 +26,7 @@ export default function LeadsAlicia() {
   const { data: allActions = [] } = useQuery({
     queryKey: ['lead_actions'],
     queryFn: async () => {
-      const { data } = await supabase.from('lead_actions').select('lead_id, action_type');
+      const { data } = await supabase.from('lead_actions').select('lead_id, action_type, created_at');
       return data || [];
     },
   });
@@ -45,11 +45,19 @@ export default function LeadsAlicia() {
   );
 
   const actionsByLead: Record<string, string[]> = {};
+  const collectedAtMap: Record<string, string> = {};
+  
   allActions.forEach((a) => {
     if (a.lead_id) {
       if (!actionsByLead[a.lead_id]) actionsByLead[a.lead_id] = [];
       if (!actionsByLead[a.lead_id].includes(a.action_type || '')) {
         actionsByLead[a.lead_id].push(a.action_type || '');
+      }
+      
+      if (a.action_type === 'lead_collected' && a.created_at) {
+        if (!collectedAtMap[a.lead_id] || new Date(a.created_at) > new Date(collectedAtMap[a.lead_id])) {
+          collectedAtMap[a.lead_id] = a.created_at;
+        }
       }
     }
   });
@@ -135,7 +143,7 @@ export default function LeadsAlicia() {
 
         <div>
           {activeTab === 'meus' && (
-            <AliciaMyLeadsTab leads={myLeads as any[]} isLoading={isLoading} actionsByLead={actionsByLead} allLeads={allLeads as any[]} profileMap={profileMap} />
+            <AliciaMyLeadsTab leads={myLeads as any[]} isLoading={isLoading} actionsByLead={actionsByLead} allLeads={allLeads as any[]} profileMap={profileMap} collectedAtMap={collectedAtMap} />
           )}
           {activeTab === 'webinar' && (
             <AliciaWebinarLeadsTab leads={webinarLeads as any[]} isLoading={isLoading} allLeads={allLeads as any[]} profileMap={profileMap} />

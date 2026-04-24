@@ -14,8 +14,11 @@ import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWra
 import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
-import { isToday, parseISO } from 'date-fns';
+import { isToday, parseISO, format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 
 interface MyLeadsTabV2Props {
   leads: any[];
@@ -23,9 +26,10 @@ interface MyLeadsTabV2Props {
   actionsByLead: Record<string, string[]>;
   allLeads?: any[];
   profileMap?: Record<string, string>;
+  collectedAtMap?: Record<string, string>;
 }
 
-export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], profileMap: externalProfileMap }: MyLeadsTabV2Props) {
+export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], profileMap: externalProfileMap, collectedAtMap = {} }: MyLeadsTabV2Props) {
   const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
@@ -40,6 +44,7 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
   const [lostDialogLead, setLostDialogLead] = useState<any>(null);
   const [tagFilter, setTagFilter] = useState('all');
   const [revenueFilter, setRevenueFilter] = useState('all');
+  const [dateFilter, setDateFilter] = useState<Date | undefined>();
   const [mqlOnly, setMqlOnly] = useState(false);
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
@@ -208,6 +213,15 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
     if (tagFilter !== 'all' && leadTag !== tagFilter) return false;
     if (mqlOnly && !isMql(lead.faturamento)) return false;
     if (revenueFilter !== 'all' && parseFaturamento(lead.faturamento) !== revenueFilter) return false;
+    if (dateFilter) {
+      const dateToUse = collectedAtMap[lead.id] || lead.created_at;
+      if (dateToUse) {
+        const leadDate = parseISO(dateToUse).toDateString();
+        if (leadDate !== dateFilter.toDateString()) return false;
+      } else {
+        return false;
+      }
+    }
     return true;
   });
 
@@ -354,6 +368,17 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
               </SelectContent>
             </Select>
           </NeonSelectWrapper>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="flex items-center gap-2 bg-secondary rounded-xl px-3 h-10 text-sm text-muted-foreground hover:text-foreground transition-colors">
+                <Calendar size={14} />
+                {dateFilter ? format(dateFilter, "dd/MM/yyyy") : t('Data')}
+              </button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent mode="single" selected={dateFilter} onSelect={setDateFilter} initialFocus className="p-3 pointer-events-auto" locale={ptBR} />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors" onClick={() => setMqlOnly(!mqlOnly)}>
@@ -362,8 +387,8 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
             </div>
             {t('Somente MQL')}
           </label>
-          {(search || stageFilter !== 'all' || sellerFilter !== 'all' || tagFilter !== 'all' || revenueFilter !== 'all' || mqlOnly) && (
-            <button onClick={() => { setSearch(''); setStageFilter('all'); setSellerFilter('all'); setTagFilter('all'); setRevenueFilter('all'); setMqlOnly(false); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
+          {(search || stageFilter !== 'all' || sellerFilter !== 'all' || tagFilter !== 'all' || revenueFilter !== 'all' || mqlOnly || dateFilter) && (
+            <button onClick={() => { setSearch(''); setStageFilter('all'); setSellerFilter('all'); setTagFilter('all'); setRevenueFilter('all'); setMqlOnly(false); setDateFilter(undefined); }} className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1">
               <XCircle size={12} /> Limpar
             </button>
           )}
