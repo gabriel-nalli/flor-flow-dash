@@ -8,7 +8,7 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { User, Sun, Moon, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { supabase } from '@/integrations/supabase/client';
+
 
 export default function AppLayout() {
   const { selectedProfile, setSelectedProfile, isAdmin, teamMembers } = useProfileSelector();
@@ -61,27 +61,8 @@ export default function AppLayout() {
               {isLight ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
             </Button>
             <User className="w-4 h-4 text-muted-foreground hidden sm:block" />
-            {isAdmin && (
+            {isAdmin ? (
               <>
-                <Button 
-                  onClick={async () => {
-                    const luiz = teamMembers.find(m => m.full_name?.toLowerCase().includes('luiz') || m.full_name?.toLowerCase().includes('carvalho'));
-                    if (luiz) {
-                      if (confirm(`Tem certeza que quer dar ADMIN para: ${luiz.full_name}?`)) {
-                        const { error } = await supabase.from('profiles_dash').update({ role: 'ADMIN' }).eq('id', luiz.id);
-                        if (error) alert("Erro: " + error.message);
-                        else alert(`${luiz.full_name} agora é ADMIN! Atualize a página e você já poderá apagar/editar esse botão.`);
-                      }
-                    } else {
-                      alert("Nenhum usuário com o nome 'Luiz' ou 'Carvalho' foi encontrado. Ele já fez login na Dashboard pelo menos uma vez para criar o perfil dele?");
-                    }
-                  }}
-                  variant="default"
-                  size="sm"
-                  className="h-8 md:h-9 text-xs md:text-sm mr-2"
-                >
-                  Dar Admin pro Luiz
-                </Button>
               <Select
                 value={selectedProfile.id}
                 onValueChange={(id) => {
