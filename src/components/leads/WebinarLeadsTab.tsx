@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
@@ -14,6 +14,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { EditLeadDialog } from '@/components/leads/EditLeadDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonSelectWrapper } from './NeonLeadComponents';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { TablePagination } from '@/components/TablePagination';
+
+const PAGE_SIZE = 25;
 
 interface WebinarLeadsTabProps {
   leads: any[];
@@ -26,6 +30,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const [nameFilter, setNameFilter] = useState('');
   const [instaFilter, setInstaFilter] = useState('');
@@ -37,13 +42,17 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [editLead, setEditLead] = useState<any>(null);
+  const [page, setPage] = useState(1);
+
+  const deferredName = useDeferredValue(nameFilter);
+  const deferredInsta = useDeferredValue(instaFilter);
 
   const resolvedProfileMap = profileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
-  
+
   // Extrai tags únicas priorizando a tag_manual, depois webinar_date_tag
-  const uniqueTags = Array.from(new Set(
+  const uniqueTags = useMemo(() => Array.from(new Set(
     allLeads.map(l => l.tag_manual || l.webinar_date_tag).filter(Boolean)
-  )).sort().reverse();
+  )).sort().reverse(), [allLeads]);
 
   const parseFaturamento = (fat: string | null | undefined): string => {
     if (!fat) return '';
@@ -68,13 +77,13 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
     return bucket === '3k-6k' || bucket === '6k-10k' || bucket === '12k+';
   };
 
-  const filtered = leads.filter(lead => {
-    if (nameFilter && !lead.nome?.toLowerCase().includes(nameFilter.toLowerCase())) return false;
-    if (instaFilter && !lead.instagram?.toLowerCase().includes(instaFilter.toLowerCase())) return false;
-    
+  const filtered = useMemo(() => leads.filter(lead => {
+    if (deferredName && !lead.nome?.toLowerCase().includes(deferredName.toLowerCase())) return false;
+    if (deferredInsta && !lead.instagram?.toLowerCase().includes(deferredInsta.toLowerCase())) return false;
+
     const leadTag = lead.tag_manual || lead.webinar_date_tag;
     if (tagFilter !== 'all' && leadTag !== tagFilter) return false;
-    
+
     if (mqlOnly && !isMql(lead.faturamento)) return false;
     if (revenueFilter !== 'all' && parseFaturamento(lead.faturamento) !== revenueFilter) return false;
     if (dateFilter && lead.created_at) {
@@ -82,27 +91,44 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
       if (leadDate !== dateFilter.toDateString()) return false;
     }
     return true;
-  });
+  }), [leads, deferredName, deferredInsta, tagFilter, mqlOnly, revenueFilter, dateFilter]);
+
+  // Reseta para a 1ª página sempre que um filtro muda.
+  useEffect(() => { setPage(1); }, [deferredName, deferredInsta, tagFilter, mqlOnly, revenueFilter, dateFilter]);
+
+  // Paginação: renderiza só 25 linhas por vez em vez de centenas (fim do congelamento).
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageLeads = useMemo(() => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE), [filtered, safePage]);
 
   const handleCollect = async (lead: any) => {
     setCollectingId(lead.id);
+    const now = new Date().toISOString();
+    // Otimista: marca como coletado já na tela; reconcilia se a corrida for perdida.
+    queryClient.setQueryData(['leads'], (old: any[] | undefined) =>
+      Array.isArray(old) ? old.map(l => (l.id === lead.id ? { ...l, assigned_to: selectedProfile.id, last_action_at: now } : l)) : old);
     try {
       const { data, error } = await supabase
         .from('leads')
-        .update({ assigned_to: selectedProfile.id, last_action_at: new Date().toISOString() } as any)
+        .update({ assigned_to: selectedProfile.id, last_action_at: now } as any)
         .eq('id', lead.id)
         .is('assigned_to', null)
         .select();
       if (error) throw error;
       if (data && data.length > 0) {
         await supabase.from('lead_actions').insert([{ lead_id: lead.id, action_type: 'lead_collected', user_id: selectedProfile.id, action_metadata: {} as any }]);
-        queryClient.invalidateQueries({ queryKey: ['leads'] });
+        queryClient.setQueryData(['lead_actions'], (old: any[] | undefined) => [
+          ...(old || []),
+          { lead_id: lead.id, action_type: 'lead_collected', user_id: selectedProfile.id, created_at: now },
+        ]);
         toast.success('Lead coletado com sucesso! ✅');
       } else {
+        // Corrida perdida: outra vendedora coletou antes — ressincroniza com o banco.
         queryClient.invalidateQueries({ queryKey: ['leads'] });
         toast.error('Lead já foi coletado por outra vendedora!');
       }
     } catch {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
       toast.error('Erro ao coletar lead. Tente novamente.');
     } finally {
       setCollectingId(null);
@@ -214,13 +240,14 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         </div>
       )}
 
-      {/* Mobile Card View */}
-      <div className="md:hidden px-4 pt-3 pb-6 space-y-3">
+      {/* Lista: cards no mobile, tabela no desktop — só uma é montada por vez */}
+      {isMobile ? (
+      <div className="px-4 pt-3 pb-6 space-y-3">
         {isLoading ? (
           <div className="text-center py-16 text-muted-foreground">{t('Carregando...')}</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</div>
-        ) : filtered.map(lead => (
+        ) : pageLeads.map(lead => (
           <div key={lead.id} className="bg-secondary/50 rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
@@ -340,9 +367,9 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         
       </div>
 
-      {/* Desktop Table View */}
+      ) : (
       <NeonTableWrapper>
-        <table className="w-full hidden md:table">
+        <table className="w-full">
           <thead>
             <tr>
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Nome')}</th>
@@ -361,7 +388,7 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
               <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={7} className="text-center py-16 text-muted-foreground">{t('Nenhum lead disponível')}</td></tr>
-            ) : filtered.map(lead => (
+            ) : pageLeads.map(lead => (
               <React.Fragment key={lead.id}>
                 <tr className="hover:bg-muted/30 transition-colors group">
                   <td className="px-6 py-4">
@@ -495,6 +522,11 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
         </table>
 
       </NeonTableWrapper>
+      )}
+
+      {!isLoading && filtered.length > 0 && (
+        <TablePagination page={safePage} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
+      )}
 
       <EditLeadDialog
         open={editDialogOpen}
