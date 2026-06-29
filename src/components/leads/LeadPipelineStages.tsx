@@ -1,5 +1,4 @@
 import { MessageCircle, Calendar, XCircle, Phone, CheckCircle, TrendingUp, Clock } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
 const PIPELINE_STAGES = [
@@ -17,29 +16,27 @@ interface LeadPipelineStagesProps {
   completedActions: string[];
 }
 
+// Usa `title` nativo no lugar de 8 Tooltips Radix por linha. Em listas grandes
+// (centenas/milhares de linhas) os Tooltips Radix dominavam o custo de montagem,
+// e no toque (celular) o tooltip nem abre — então não se perde nada de UX.
 export function LeadPipelineStages({ completedActions }: LeadPipelineStagesProps) {
   const actionSet = new Set(completedActions);
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <div className="flex items-center gap-0.5">
-        {PIPELINE_STAGES.map((stage) => {
-          const done = actionSet.has(stage.actionType);
-          const Icon = stage.icon;
-          return (
-            <Tooltip key={stage.actionType}>
-              <TooltipTrigger asChild>
-                <div className={cn('p-0.5 rounded', done ? stage.color : 'text-muted-foreground/20')}>
-                  <Icon className="w-3.5 h-3.5" />
-                </div>
-              </TooltipTrigger>
-              <TooltipContent side="top" className="text-xs">
-                {stage.label} {done ? '✓' : '—'}
-              </TooltipContent>
-            </Tooltip>
-          );
-        })}
-      </div>
-    </TooltipProvider>
+    <div className="flex items-center gap-0.5">
+      {PIPELINE_STAGES.map((stage) => {
+        const done = actionSet.has(stage.actionType);
+        const Icon = stage.icon;
+        return (
+          <div
+            key={stage.actionType}
+            className={cn('p-0.5 rounded', done ? stage.color : 'text-muted-foreground/20')}
+            title={`${stage.label} ${done ? '✓' : '—'}`}
+          >
+            <Icon className="w-3.5 h-3.5" />
+          </div>
+        );
+      })}
+    </div>
   );
 }

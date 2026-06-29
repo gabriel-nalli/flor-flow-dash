@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -7,18 +8,41 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { useProfileSelector, ProfileSelectorProvider } from "@/contexts/ProfileSelectorContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import AppLayout from "@/components/AppLayout";
-import Dashboard from "@/pages/Dashboard";
-import Leads from "@/pages/Leads";
-import LeadsAlicia from "@/pages/LeadsAlicia";
-import Routine from "@/pages/Routine";
-import SalesGoal from "@/pages/SalesGoal";
-import WebinarFunnel from "@/pages/WebinarFunnel";
-import Commissions from "@/pages/Commissions";
-import Login from "@/pages/Login";
-import ResetPassword from "@/pages/ResetPassword";
-import NotFound from "@/pages/NotFound";
 
-const queryClient = new QueryClient();
+// Páginas carregadas sob demanda (code-splitting por rota): evita baixar/parsear
+// o app inteiro (incluindo gráficos do funil) antes da primeira tela aparecer.
+const Dashboard = lazy(() => import("@/pages/Dashboard"));
+const Leads = lazy(() => import("@/pages/Leads"));
+const LeadsAlicia = lazy(() => import("@/pages/LeadsAlicia"));
+const Routine = lazy(() => import("@/pages/Routine"));
+const SalesGoal = lazy(() => import("@/pages/SalesGoal"));
+const WebinarFunnel = lazy(() => import("@/pages/WebinarFunnel"));
+const Commissions = lazy(() => import("@/pages/Commissions"));
+const Login = lazy(() => import("@/pages/Login"));
+const ResetPassword = lazy(() => import("@/pages/ResetPassword"));
+const NotFound = lazy(() => import("@/pages/NotFound"));
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      // Dados ficam "frescos" por 5min: voltar a uma aba já visitada é servido
+      // do cache (sem rebaixar ~1MB nem re-renderizar a tabela inteira).
+      staleTime: 5 * 60 * 1000,
+      gcTime: 30 * 60 * 1000,
+      // Não refazer todas as queries só por trocar de janela (ex.: WhatsApp -> navegador no celular).
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
+
+function RouteFallback() {
+  return (
+    <div className="flex items-center justify-center py-20">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+    </div>
+  );
+}
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAdmin } = useProfileSelector();
@@ -64,11 +88,13 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/*" element={<ProtectedRoutes />} />
-          </Routes>
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/*" element={<ProtectedRoutes />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
       </TooltipProvider>
     </AuthProvider>
