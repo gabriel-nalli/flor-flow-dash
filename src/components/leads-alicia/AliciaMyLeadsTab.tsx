@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useDeferredValue } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LostReasonDialog } from '@/components/leads/LostReasonDialog';
 import { supabase } from '@/integrations/supabase/client';
@@ -17,6 +17,10 @@ import { ptBR } from 'date-fns/locale';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { TablePagination } from '@/components/TablePagination';
+
+const PAGE_SIZE = 25;
 
 interface AliciaMyLeadsTabProps {
   leads: any[];
@@ -31,6 +35,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
   const { selectedProfile, isAdmin, teamMembers } = useProfileSelector();
   const queryClient = useQueryClient();
   const { t } = useLanguage();
+  const isMobile = useIsMobile();
 
   const [search, setSearch] = useState('');
   const [stageFilter, setStageFilter] = useState('all');
@@ -46,12 +51,15 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [reassignLead, setReassignLead] = useState<any>(null);
   const [reassignTo, setReassignTo] = useState('');
+  const [page, setPage] = useState(1);
+
+  const deferredSearch = useDeferredValue(search);
 
   const profileMap = externalProfileMap || Object.fromEntries(teamMembers.map(p => [p.id, p.full_name]));
   const sellers = Object.entries(profileMap)
     .filter(([id]) => leads.some(l => l.assigned_to === id) || allLeads.some(l => l.assigned_to === id))
     .map(([id, name]) => ({ id, full_name: name }));
-  const uniqueTags = Array.from(new Set(allLeads.map(l => l.source_tag).filter(Boolean))).sort().reverse();
+  const uniqueTags = useMemo(() => Array.from(new Set(allLeads.map(l => l.source_tag).filter(Boolean))).sort().reverse(), [allLeads]);
 
   const { data: allProfiles = [] } = useQuery({
     queryKey: ['profiles_dash'],
@@ -68,14 +76,24 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
     !p.full_name.toLowerCase().includes('test')
   );
 
+  // Otimista: insere a ação no cache na hora; o banco confirma em background.
   const logAction = async (leadId: string, actionType: string) => {
-    await supabase.from('lead_actions').insert([{ lead_id: leadId, action_type: actionType, user_id: selectedProfile.id, action_metadata: {} as any }]);
+    const now = new Date().toISOString();
+    queryClient.setQueryData(['lead_actions'], (old: any[] | undefined) => [
+      ...(old || []),
+      { lead_id: leadId, action_type: actionType, user_id: selectedProfile.id, created_at: now },
+    ]);
+    const { error } = await supabase.from('lead_actions').insert([{ lead_id: leadId, action_type: actionType, user_id: selectedProfile.id, action_metadata: {} as any }]);
+    if (error) queryClient.invalidateQueries({ queryKey: ['lead_actions'] });
   };
 
+  // Otimista: aplica o patch no lead em cache imediatamente (clique instantâneo).
   const updateLead = async (leadId: string, updates: Record<string, unknown>) => {
-    await supabase.from('leads_alicia' as any).update({ ...updates, last_action_at: new Date().toISOString() } as any).eq('id', leadId);
-    queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
-    queryClient.invalidateQueries({ queryKey: ['lead_actions'] });
+    const patch = { ...updates, last_action_at: new Date().toISOString() };
+    queryClient.setQueryData(['leads_alicia'], (old: any[] | undefined) =>
+      Array.isArray(old) ? old.map(l => (l.id === leadId ? { ...l, ...patch } : l)) : old);
+    const { error } = await supabase.from('leads_alicia' as any).update(patch as any).eq('id', leadId);
+    if (error) queryClient.invalidateQueries({ queryKey: ['leads_alicia'] });
   };
 
   const handleWhatsApp = async (lead: any) => {
@@ -164,8 +182,8 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
     setSaleDialogOpen(false); setSaleDialogLead(null);
   };
 
-  const filtered = leads.filter(lead => {
-    if (search && !lead.nombre?.toLowerCase().includes(search.toLowerCase()) && !lead.whatsapp?.includes(search)) return false;
+  const filtered = useMemo(() => leads.filter(lead => {
+    if (deferredSearch && !lead.nombre?.toLowerCase().includes(deferredSearch.toLowerCase()) && !lead.whatsapp?.includes(deferredSearch)) return false;
     if (stageFilter === 'perdido') {
       if (lead.status !== 'perdido') return false;
     } else if (stageFilter !== 'all' && !(actionsByLead[lead.id] || []).includes(stageFilter)) return false;
@@ -181,10 +199,17 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
       }
     }
     return true;
-  });
+  }), [leads, deferredSearch, stageFilter, isAdmin, sellerFilter, tagFilter, dateFilter, actionsByLead, collectedAtMap]);
 
-  const urgentLeads = filtered.filter(l => l.status === 'novo' && l.created_at && isToday(parseISO(l.created_at)));
-  const overdueFollowups = filtered.filter(l => l.next_followup_date && new Date(l.next_followup_date) < new Date());
+  // Reseta para a 1ª página sempre que um filtro muda.
+  useEffect(() => { setPage(1); }, [deferredSearch, stageFilter, sellerFilter, tagFilter, dateFilter]);
+
+  const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const safePage = Math.min(page, pageCount);
+  const pageLeads = useMemo(() => filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE), [filtered, safePage]);
+
+  const urgentLeads = useMemo(() => filtered.filter(l => l.status === 'novo' && l.created_at && isToday(parseISO(l.created_at))), [filtered]);
+  const overdueFollowups = useMemo(() => filtered.filter(l => l.next_followup_date && new Date(l.next_followup_date) < new Date()), [filtered]);
 
   return (
     <div>
@@ -267,13 +292,14 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
         </div>
       )}
 
-      {/* Mobile Card View */}
-      <div className="md:hidden px-4 pt-3 pb-6 space-y-3">
+      {/* Lista: cards no mobile, tabela no desktop — só uma é montada por vez */}
+      {isMobile ? (
+      <div className="px-4 pt-3 pb-6 space-y-3">
         {isLoading ? (
           <div className="text-center py-16 text-muted-foreground">{t('Carregando...')}</div>
         ) : filtered.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">{t('Nenhum lead encontrado')}</div>
-        ) : filtered.map(lead => (
+        ) : pageLeads.map(lead => (
           <div key={lead.id} className="bg-secondary/50 rounded-2xl overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between px-4 pt-4 pb-3">
@@ -421,9 +447,9 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
         
       </div>
 
-      {/* Desktop Table View */}
+      ) : (
       <NeonTableWrapper>
-        <table className="w-full hidden md:table">
+        <table className="w-full">
           <thead>
             <tr className="border-b border-transparent">
               <th className="text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-6 py-4">{t('Nome')}</th>
@@ -441,7 +467,7 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
               <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">{t('Carregando...')}</td></tr>
             ) : filtered.length === 0 ? (
               <tr><td colSpan={8} className="text-center py-16 text-muted-foreground">{t('Nenhum lead encontrado')}</td></tr>
-            ) : filtered.map(lead => (
+            ) : pageLeads.map(lead => (
               <React.Fragment key={lead.id}>
                 <tr className={`hover:bg-muted/30 transition-colors group ${lead.status === 'novo' && lead.created_at && isToday(parseISO(lead.created_at)) ? 'bg-destructive/[0.03]' : ''}`}>
                   <td className="px-6 py-4">
@@ -642,6 +668,11 @@ export function AliciaMyLeadsTab({ leads, isLoading, actionsByLead, allLeads = [
         </table>
 
       </NeonTableWrapper>
+      )}
+
+      {!isLoading && filtered.length > 0 && (
+        <TablePagination page={safePage} pageSize={PAGE_SIZE} total={filtered.length} onPageChange={setPage} />
+      )}
 
       <Dialog open={reassignDialogOpen} onOpenChange={setReassignDialogOpen}>
         <DialogContent>
