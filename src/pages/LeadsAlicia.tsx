@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLeadActions } from '@/hooks/useLeads';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, Plus } from 'lucide-react';
@@ -23,13 +24,7 @@ export default function LeadsAlicia() {
     },
   });
 
-  const { data: allActions = [] } = useQuery({
-    queryKey: ['lead_actions'],
-    queryFn: async () => {
-      const { data } = await supabase.from('lead_actions').select('lead_id, action_type, created_at');
-      return data || [];
-    },
-  });
+  const { data: allActions = [] } = useLeadActions();
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles_dash'],

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLeads, useLeadActions } from '@/hooks/useLeads';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -77,13 +78,7 @@ export default function Dashboard() {
     }, 200);
   };
 
-  const { data: leads = [] } = useQuery({
-    queryKey: ['leads'],
-    queryFn: async () => {
-      const { data } = await supabase.from('leads').select('*');
-      return data || [];
-    },
-  });
+  const { data: leads = [] } = useLeads();
 
   const { data: leadsAlicia = [] } = useQuery({
     queryKey: ['leads_alicia'],
@@ -102,22 +97,15 @@ export default function Dashboard() {
     },
   });
 
-  const { data: allActions = [] } = useQuery({
-    queryKey: ['lead_actions'],
-    queryFn: async () => {
-      const { data } = await supabase.from('lead_actions').select('*');
-      return data || [];
-    },
-  });
+  const { data: allActions = [] } = useLeadActions();
 
-  const { data: todayActions = [] } = useQuery({
-    queryKey: ['today-actions'],
-    queryFn: async () => {
-      const today = format(new Date(), 'yyyy-MM-dd');
-      const { data } = await supabase.from('lead_actions').select('*').gte('created_at', today);
-      return data || [];
-    },
-  });
+  // "Ações de hoje" derivadas do cache ['lead_actions'] (em vez de uma 2ª query):
+  // created_at é timestamptz ISO, então a comparação de string com 'yyyy-MM-dd'
+  // reproduz o antigo .gte('created_at', hoje).
+  const todayActions = useMemo(() => {
+    const today = format(new Date(), 'yyyy-MM-dd');
+    return allActions.filter((a: any) => a.created_at && a.created_at >= today);
+  }, [allActions]);
 
   // Helper: tag ISO = lead manual
   const isManualTag = (tag: string | null | undefined) =>

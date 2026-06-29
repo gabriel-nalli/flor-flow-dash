@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useLeads } from '@/hooks/useLeads';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { SalesGoalChart } from '@/components/dashboard/SalesGoalChart';
@@ -11,13 +10,7 @@ export default function SalesGoal() {
   const { t } = useLanguage();
   const [goalSeller, setGoalSeller] = useState('all');
 
-  const { data: leads = [] } = useQuery({
-    queryKey: ['sales-goal-leads'],
-    queryFn: async () => {
-      const { data } = await supabase.from('leads').select('*');
-      return data || [];
-    },
-  });
+  const { data: leads = [] } = useLeads();
 
   const visibleLeads = isAdmin ? leads : leads.filter(l => l.assigned_to === selectedProfile.id);
 

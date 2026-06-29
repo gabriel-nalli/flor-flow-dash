@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLeads } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
@@ -8,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import { Save, Users, Target, TrendingUp, CheckCircle, Percent, Download } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
@@ -19,13 +19,7 @@ export default function WebinarFunnel() {
   const [pitchInput, setPitchInput] = useState('');
   const [saving, setSaving] = useState(false);
 
-  const { data: allLeads = [] } = useQuery({
-    queryKey: ['leads'],
-    queryFn: async () => {
-      const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      return data || [];
-    },
-  });
+  const { data: allLeads = [] } = useLeads();
 
   const { data: metrics = [] } = useQuery({
     queryKey: ['webinar_metrics'],

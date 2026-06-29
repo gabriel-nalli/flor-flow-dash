@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useLeads, useLeadActions } from '@/hooks/useLeads';
 import { useProfileSelector } from '@/contexts/ProfileSelectorContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Users, UserCheck, Download, Plus } from 'lucide-react';
@@ -15,21 +16,9 @@ export default function Leads() {
   const [activeTab, setActiveTab] = useState('meus');
   const [newLeadOpen, setNewLeadOpen] = useState(false);
 
-  const { data: allLeads = [], isLoading } = useQuery({
-    queryKey: ['leads'],
-    queryFn: async () => {
-      const { data } = await supabase.from('leads').select('*').order('created_at', { ascending: false });
-      return data || [];
-    },
-  });
+  const { data: allLeads = [], isLoading } = useLeads();
 
-  const { data: allActions = [] } = useQuery({
-    queryKey: ['lead_actions'],
-    queryFn: async () => {
-      const { data } = await supabase.from('lead_actions').select('lead_id, action_type, created_at');
-      return data || [];
-    },
-  });
+  const { data: allActions = [] } = useLeadActions();
 
   const { data: profiles = [] } = useQuery({
     queryKey: ['profiles_dash'],
