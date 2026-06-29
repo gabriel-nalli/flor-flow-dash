@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { LeadPipelineStages } from '@/components/leads/LeadPipelineStages';
 import { SaleDialog } from '@/components/leads/SaleDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWrapper } from './NeonLeadComponents';
+import { instagramUrl, instagramHandle } from '@/lib/instagram';
 import { MessageCircle, Calendar, Phone, XCircle, CheckCircle, TrendingUp, AlertTriangle, Search, Tag, Instagram, MoreHorizontal, DollarSign, ChevronDown, ChevronUp, Undo2, UserCheck, Edit2, Trash2 } from 'lucide-react';
 import { STATUS_CONFIG, WHATSAPP_TEMPLATE_THAYLOR } from '@/lib/constants';
 import { toast } from 'sonner';
@@ -456,8 +457,8 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
                 <div className="min-w-0">
                   <p className="font-semibold text-foreground text-sm truncate">{lead.nome}</p>
                   {lead.instagram && (
-                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors block truncate max-w-[120px]">
-                      @{lead.instagram.replace(/^@/, '')}
+                    <a href={instagramUrl(lead.instagram)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground transition-colors block truncate max-w-[120px]">
+                      {instagramHandle(lead.instagram)}
                     </a>
                   )}
                 </div>
@@ -584,7 +585,8 @@ export function MyLeadsTabV2({ leads, isLoading, actionsByLead, allLeads = [], p
                   </td>
                   <td className="px-4 py-4">
                     {lead.instagram && (
-                      <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+                      <a href={instagramUrl(lead.instagram)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex flex-col items-start gap-1" title={instagramHandle(lead.instagram) ?? ''}>
+                        <span className="text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[150px] truncate">{instagramHandle(lead.instagram)}</span>
                         <div className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity cursor-pointer w-fit">
                           <Instagram size={14} className="text-white" />
                         </div>

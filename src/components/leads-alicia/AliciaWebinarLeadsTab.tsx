@@ -11,6 +11,7 @@ import { ptBR } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { NeonInput, NeonStatusBadge, LeadAvatar, NeonTableWrapper, NeonSelectWrapper } from '../leads/NeonLeadComponents';
+import { instagramUrl, instagramHandle } from '@/lib/instagram';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { WHATSAPP_TEMPLATE_ALICIA } from '@/lib/constants';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -211,8 +212,8 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                 <div className="min-w-0">
                   <p className="font-medium text-foreground text-sm truncate">{lead.nombre}</p>
                   {lead.instagram && (
-                    <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground">
-                      @{lead.instagram.replace(/^@/, '')}
+                    <a href={instagramUrl(lead.instagram)} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground">
+                      {instagramHandle(lead.instagram)}
                     </a>
                   )}
                 </div>
@@ -287,7 +288,8 @@ export function AliciaWebinarLeadsTab({ leads, isLoading, allLeads = [], profile
                   <td className="px-4 py-4">
                     <div className="flex items-center gap-1.5">
                       {lead.instagram && (
-                        <a href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()}>
+                        <a href={instagramUrl(lead.instagram)} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="inline-flex flex-col items-start gap-1" title={instagramHandle(lead.instagram) ?? ''}>
+                          <span className="text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[150px] truncate">{instagramHandle(lead.instagram)}</span>
                           <div className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity cursor-pointer">
                             <Instagram size={14} className="text-white" />
                           </div>

@@ -13,6 +13,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EditLeadDialog } from '@/components/leads/EditLeadDialog';
 import { NeonInput, NeonStatusBadge, LeadAvatar, ChannelIcon, NeonTableWrapper, NeonSelectWrapper } from './NeonLeadComponents';
+import { instagramUrl, instagramHandle } from '@/lib/instagram';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { TablePagination } from '@/components/TablePagination';
@@ -257,12 +258,12 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                   <p className="font-semibold text-foreground text-sm truncate">{lead.nome}</p>
                   {lead.instagram && (
                     <a 
-                      href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`} 
+                      href={instagramUrl(lead.instagram)} 
                       target="_blank" 
                       rel="noopener noreferrer" 
                       className="text-xs text-muted-foreground hover:text-foreground transition-colors block truncate pr-2"
                     >
-                      @{lead.instagram.replace(/^@/, '')}
+                      {instagramHandle(lead.instagram)}
                     </a>
                   )}
                 </div>
@@ -401,11 +402,14 @@ export function WebinarLeadsTab({ leads, isLoading, allLeads = [], profileMap }:
                     <div className="flex items-center gap-1.5">
                       {lead.instagram && (
                         <a
-                          href={`https://instagram.com/${lead.instagram.replace(/^@/, '')}`}
+                          href={instagramUrl(lead.instagram)}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={e => e.stopPropagation()}
+                          className="inline-flex flex-col items-start gap-1"
+                          title={instagramHandle(lead.instagram) ?? ''}
                         >
+                          <span className="text-xs text-muted-foreground hover:text-foreground transition-colors max-w-[150px] truncate">{instagramHandle(lead.instagram)}</span>
                           <div className="p-2 rounded-full bg-gradient-to-tr from-[#FCAF45] via-[#E1306C] to-[#833AB4] hover:opacity-80 transition-opacity cursor-pointer">
                             <Instagram size={14} className="text-white" />
                           </div>
